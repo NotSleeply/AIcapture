@@ -131,10 +131,10 @@ function captureWin(mainWindow, imgDir) {
 
     // 创建新的对话窗口
     dialogWindow = new BrowserWindow({
-      width: 680,
-      height: 720,
-      minWidth: 550,
-      minHeight: 500,
+      width: 920,
+      height: 780,
+      minWidth: 700,
+      minHeight: 550,
       title: "AI分析",
       autoHideMenuBar: true,
       resizable: true,

@@ -15,6 +15,22 @@ const Screenshots = require("electron-screenshots");
 const buildImg = require("./tools/buildImg");
 const imgDir = path.join(__dirname, "../img");
 
+// ====== 单实例锁：防止重复启动 ======
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  // 已有实例在运行，直接退出
+  console.log('[AIcapture] 检测到已有运行中的实例，自动退出。');
+  app.quit();
+} else {
+  // 当第二个实例尝试启动时，聚焦已有窗口
+  app.on('second-instance', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    }
+  });
+}
 
 // 初设化
 init();
