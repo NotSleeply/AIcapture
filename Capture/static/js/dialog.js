@@ -1,5 +1,6 @@
 import { formatAIMessage } from "./tools/formatAIMessage.js";
 import { analyzeImage as aiAnalyzeImage, sendFollowup as aiSendFollowup, DEFAULT_IMAGE_PROMPT } from "./tools/aiClient.js";
+import OCRManager from "./tools/ocrEngine.js";
 
 // 辅助函数
 function $(id) { return document.getElementById(id); }
@@ -9,6 +10,16 @@ const chatMessages = $('chatMessages');
 const userInput = $('userInput');
 const sendButton = $('sendButton');
 const btnClose = $('btnClose');
+
+// OCR 元素引用
+const btnOCR = $('btnOCR');
+const ocrResultPanel = $('ocrResultPanel');
+const ocrResultText = $('ocrResultText');
+const ocrConfidence = $('ocrConfidence');
+const btnCopyOCR = $('btnCopyOCR');
+const btnSendToAI = $('btnSendToAI');
+const ocrProgress = $('ocrProgress');
+const ocrProgressBar = $('ocrProgressBar');
 
 // 状态变量
 let imagePath = null;
@@ -45,7 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton.addEventListener('click', handleUserInput);
     btnClose.addEventListener('click', () => {
         window.myAPI.closeDialog();
+        OCRManager.terminate(); // 清理OCR资源
     });
+    
+    // OCR 事件绑定
+    btnOCR?.addEventListener('click', handleOCR);
+    btnCopyOCR?.addEventListener('click', copyOCRResult);
+    btnSendToAI?.addEventListener('click', sendOCRToAI);
 });
 
 // 处理用户输入
@@ -172,4 +189,102 @@ async function readFileAsBase64(filePath) {
     } catch (err) {
         throw new Error('读取图片文件失败: ' + err.message);
     }
+}
+
+// ===== OCR 功能实现 =====
+
+let ocrResultCache = null; // 缓存最近一次OCR结果
+
+/**
+ * 执行 OCR 识别
+ */
+async function handleOCR() {
+    if (!imageBase64) {
+        addMessage('请先等待图片加载完成', 'ai');
+        return;
+    }
+
+    try {
+        // 显示进度
+        btnOCR.disabled = true;
+        ocrProgress.style.display = 'block';
+        ocrResultPanel.style.display = 'none';
+        ocrProgressBar.value = 0;
+
+        const result = await OCRManager.recognize(
+            `data:image/png;base64,${imageBase64}`,
+            (progress, status) => {
+                ocrProgressBar.value = progress;
+            }
+        );
+
+        ocrResultCache = result;
+
+        // 显示结果
+        ocrProgress.style.display = 'none';
+        ocrResultPanel.style.display = 'block';
+        ocrResultText.textContent = result.text;
+        
+        // 置信度百分比显示
+        const confPercent = Math.round(result.confidence * 100);
+        ocrConfidence.textContent = `置信度: ${confPercent}%`;
+        
+        // 根据置信度设置颜色
+        if (confPercent >= 80) {
+            ocrConfidence.className = 'ocr-confidence high';
+        } else if (confPercent >= 50) {
+            ocrConfidence.className = 'ocr-confidence medium';
+        } else {
+            ocrConfidence.className = 'ocr-confidence low';
+        }
+
+        console.log('[OCR] 识别完成，置信度:', confPercent + '%');
+        
+    } catch (error) {
+        console.error('OCR识别失败:', error);
+        addMessage(`OCR识别失败: ${error.message}`, 'ai');
+        ocrProgress.style.display = 'none';
+    } finally {
+        btnOCR.disabled = false;
+    }
+}
+
+/**
+ * 一键复制 OCR 结果
+ */
+function copyOCRResult() {
+    if (!ocrResultCache?.text) {
+        alert('没有可复制的文字内容');
+        return;
+    }
+
+    navigator.clipboard.writeText(ocrResultCache.text).then(() => {
+        // 临时改变按钮文字提示
+        const origText = btnCopyOCR.textContent;
+        btnCopyOCR.textContent = '已复制!';
+        setTimeout(() => { btnCopyOCR.textContent = origText; }, 1500);
+    }).catch(err => {
+        // 降级方案：使用传统方法复制
+        const textarea = document.createElement('textarea');
+        textarea.value = ocrResultCache.text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('已复制到剪贴板');
+    });
+}
+
+/**
+ * 将 OCR 文字发送给 AI 分析
+ */
+function sendOCRToAI() {
+    if (!ocrResultCache?.text) {
+        alert('没有可发送的文字内容');
+        return;
+    }
+
+    // 将OCR结果填入输入框并自动发送
+    userInput.value = `请分析以下从截图中提取出的文字内容：\n\n${ocrResultCache.text}`;
+    handleUserInput();
 }

@@ -17,6 +17,25 @@
             </div>
             <div class="dialog-body">
                 <div class="chat-container">
+                    <!-- OCR工具栏 -->
+                    <div class="ocr-toolbar" id="ocrToolbar">
+                        <button class="btn btn-sm btn-ocr" id="btnOCR" title="提取截图中的文字 (OCR)">
+                            <span class="icon-ocr">📝</span> 提取文字 (OCR)
+                        </button>
+                        <div id="ocrResultPanel" style="display: none;">
+                            <div class="ocr-result-header">
+                                <span>识别结果:</span>
+                                <span class="ocr-confidence" id="ocrConfidence"></span>
+                                <button class="btn btn-xs btn-default" id="btnCopyOCR">复制</button>
+                                <button class="btn btn-xs btn-primary" id="btnSendToAI">发给AI分析</button>
+                            </div>
+                            <pre class="ocr-result-text" id="ocrResultText"></pre>
+                        </div>
+                        <div id="ocrProgress" style="display: none;">
+                            <span class="ocr-loading-text">正在识别...</span>
+                            <progress value="0" max="100" id="ocrProgressBar"></progress>
+                        </div>
+                    </div>
                     <div id="chatMessages" class="chat-messages"></div>
                     <div class="chat-input-container">
                         <input type="text" id="userInput" class="form-control chat-input" placeholder="询问关于图片的问题...">

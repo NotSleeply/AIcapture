@@ -211,3 +211,125 @@
     opacity: 1;
   }
 }
+
+/* ===== OCR 工具栏样式 ===== */
+.ocr-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background-color: #f5f7fa;
+    border-bottom: 1px solid #e4e7ed;
+}
+
+.btn-ocr {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    font-size: 13px;
+    background: linear-gradient(135deg, #67C23A, #529b2e);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-ocr:hover {
+    background: linear-gradient(135deg, #73d146, #5faa3a);
+    box-shadow: 0 2px 8px rgba(103, 194, 58, 0.35);
+}
+
+.btn-ocr:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.icon-ocr { font-size: 14px; }
+
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-xs { padding: 2px 8px; font-size: 11px; }
+
+/* OCR 结果面板 */
+#ocrResultPanel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: white;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ocr-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: #f8f9fb;
+    border-bottom: 1px solid #ebeef5;
+    font-size: 12px;
+    color: #606266;
+    gap: 8px;
+}
+
+.ocr-confidence {
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+.ocr-confidence.high { background: #f0f9eb; color: #67c23a; }
+.ocr-confidence.medium { background: #fdf6ec; color: #e6a23c; }
+.ocr-confidence.low { background: #fef0f0; color: #f56c6c; }
+
+.ocr-result-text {
+    margin: 0;
+    padding: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-family: 'Microsoft YaHei', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #303133;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: white;
+}
+
+/* OCR 进度条 */
+#ocrProgress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #909399;
+}
+
+.ocr-loading-text {
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+progress#ocrProgressBar {
+    width: 120px;
+    height: 6px;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 3px;
+    background: #e4e7ed;
+}
+progress#ocrProgressBar::-webkit-progress-bar {
+    border-radius: 3px;
+    background: #e4e7ed;
+}
+progress#ocrProgressBar::-webkit-progress-value {
+    border-radius: 3px;
+    background: linear-gradient(90deg, #67C23A, #85ce61);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
