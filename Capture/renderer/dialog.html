@@ -12,6 +12,16 @@
             <div class="dialog-header">
                 <h3>AI 分析</h3>
                 <div class="dialog-controls">
+                    <!-- 导出按钮组 -->
+                    <div class="export-group" id="exportGroup">
+                        <button class="btn-icon-sm" id="btnExportMD" title="导出为 Markdown">📄</button>
+                        <button class="btn-icon-sm" id="btnExportTXT" title="导出为 TXT">📝</button>
+                        <button class="btn-icon-sm" id="btnExportImg" title="导出为图片">🖼️</button>
+                    </div>
+                    <!-- 模板选择器 -->
+                    <select id="templateSelect" class="template-select" title="选择提示词模板">
+                        <option value="">🔍 通用分析</option>
+                    </select>
                     <button id="btnClose" class="btn btn-default"><span class="icon icon-cancel"></span></button>
                 </div>
             </div>
@@ -40,6 +50,27 @@
                     <div class="chat-input-container">
                         <input type="text" id="userInput" class="form-control chat-input" placeholder="询问关于图片的问题...">
                         <button id="sendButton" class="btn btn-primary">发送</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模板管理弹窗 -->
+            <div id="templateManagerModal" class="modal-overlay" style="display:none;">
+                <div class="modal-content template-manager-modal">
+                    <div class="modal-header">
+                        <h4>提示词模板管理</h4>
+                        <button class="btn-close-modal" id="closeTemplateModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="template-list" id="templateList"></div>
+                        <div class="template-editor" id="templateEditor">
+                            <input type="text" id="tmplName" placeholder="模板名称" class="form-control">
+                            <textarea id="tmplPrompt" placeholder="输入提示词..." rows="3" class="form-control"></textarea>
+                            <div class="template-editor-actions">
+                                <button class="btn btn-primary btn-sm" id="btnSaveTemplate">保存模板</button>
+                                <button class="btn btn-default btn-sm" id="btnCancelEdit">取消</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
