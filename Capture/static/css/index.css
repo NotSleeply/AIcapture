@@ -361,6 +361,29 @@ h6 {
   background-image: -webkit-linear-gradient(top, #34c84a 0%, #248b34 100%);
   background-image: linear-gradient(to bottom, #34c84a 0%, #248b34 100%);
 }
+
+/* 滚动截图按钮 */
+.btn-scroll {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #9b59b6;
+  border-radius: 3px;
+  color: white;
+  background-color: #a569bd;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #be7dc5), color-stop(100%, #9b59b6));
+  background-image: linear-gradient(to bottom, #be7dc5 0%, #9b59b6 100%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-scroll:hover {
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #cf92d6), color-stop(100%, #a569bd));
+  background-image: linear-gradient(to bottom, #cf92d6 0%, #a569bd 100%);
+}
 .btn-negative {
   border-color: #fb2f29;
   border-bottom-color: #fb1710;

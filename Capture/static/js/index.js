@@ -7,6 +7,7 @@ function $(id) {
   return document.getElementById(id);
 }
 const btnCapture = $("btnCapture");
+const btnScrollCapture = $("btnScrollCapture");
 const captureKeyBox = $("captureKeyBox");
 const showKeyBox = $("showKeyBox");
 const btnSetCaptureKey = $("btnSetCaptureKey");
@@ -104,6 +105,34 @@ btnCapture.addEventListener(
   },
   false
 );
+
+// 滚动截图按钮事件
+if (btnScrollCapture) {
+  btnScrollCapture.addEventListener("click", () => {
+    if (hasClickCut) return;
+    
+    tipsWrap.style.display = "block";
+    tipsContent.innerHTML = "正在准备滚动截图，请稍候...";
+    
+    ipcRenderer.send("scroll-capture");
+  }, false);
+}
+
+// 滚动截图状态回调
+ipcRenderer.on("scroll-capture-status", (event, data) => {
+  if (data.status === 'started') {
+    tipsWrap.style.display = "block";
+    tipsContent.innerHTML = data.message || "正在滚动截图中...";
+  } else if (data.status === 'completed') {
+    tipsWrap.style.display = "block";
+    tipsContent.innerHTML = data.message || "滚动截图完成!";
+    setTimeout(() => { tipsWrap.style.display = "none"; }, 3000);
+  } else if (data.status === 'error') {
+    tipsWrap.style.display = "block";
+    tipsContent.innerHTML = "滚动截图失败: " + (data.message || "未知错误");
+    setTimeout(() => { tipsWrap.style.display = "none"; }, 3000);
+  }
+});
 // 截图完成显示提示弹层
 ipcRenderer.on("popup-tips", () => {
   tipsWrap.style.display = "block";

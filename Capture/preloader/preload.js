@@ -26,7 +26,7 @@ contextBridge.exposeInMainWorld('myAPI', {
 contextBridge.exposeInMainWorld('ipcRenderer', {
     on: (channel, func) => {
         // 白名单通道
-        const validChannels = ['popup-tips', 'has-click-cut', 'update-hide-status'];
+        const validChannels = ['popup-tips', 'has-click-cut', 'update-hide-status', 'scroll-capture-status'];
         if (validChannels.includes(channel)) {
             ipcRenderer.on(channel, (event, ...args) => func(...args));
         }
@@ -43,7 +43,8 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
             'linux-clipboard',
             'trigger-capture',
             "set-ai-analysis",
-            'close-dialog'
+            'close-dialog',
+            'scroll-capture'
         ];
         if (validChannels.includes(channel)) {
             ipcRenderer.send(channel, data);

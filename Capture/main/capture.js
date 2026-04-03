@@ -11,6 +11,7 @@ const path = require("path");
 const fs = require("fs");
 const { format } = require("url");
 const startCapture = require("./tools/startCapture");
+const ScrollCapture = require("./tools/scrollCapture");
 
 /**
  * 截图主控制器
@@ -430,6 +431,40 @@ function captureWin(mainWindow, imgDir) {
   // 开始截图的IPC处理
   ipcMain.on("cut-screen", () => {
     startCapture(mainWindow, screenshots);
+  });
+
+  // 滚动截图
+  ipcMain.on("scroll-capture", async () => {
+    try {
+      mainWindow.webContents.send('scroll-capture-status', { status: 'started', message: '正在准备滚动截图...' });
+      
+      const result = await ScrollCapture.capture(mainWindow, imgDir);
+      
+      if (result.success) {
+        // 将结果设置为当前截图并打开编辑器/AI分析
+        currentImagePath = result.imagePath;
+        if (fs.existsSync(result.imagePath)) {
+          currentImageBuffer = fs.readFileSync(result.imagePath);
+        }
+        
+        mainWindow.webContents.send('scroll-capture-status', { 
+          status: 'completed', 
+          message: `滚动截图完成! 共截取长图`,
+          imagePath: result.imagePath 
+        });
+        
+        // 自动进入编辑流程
+        if (global.enableAIAnalysis) {
+          createEditorWindow();
+        }
+        mainWindow.webContents.send("popup-tips");
+      } else {
+        mainWindow.webContents.send('scroll-capture-status', { status: 'error', message: result.error });
+      }
+    } catch (error) {
+      console.error('滚动截图失败:', error);
+      mainWindow.webContents.send('scroll-capture-status', { status: 'error', message: error.message });
+    }
   });
 
   // 设置截图快捷键
