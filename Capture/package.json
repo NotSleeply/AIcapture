@@ -31,7 +31,7 @@
   "description": "",
   "devDependencies": {
     "electron-builder": "^26.0.12",
-    "electron": "latest"
+    "electron": "^33.0.0"
   },
   "dependencies": {
     "electron-screenshots": "^0.5.27",
