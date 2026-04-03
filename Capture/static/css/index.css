@@ -1836,3 +1836,111 @@ td:last-child {
 .about-links a:hover {
   text-decoration: underline;
 }
+
+/* AI Configuration Section Styles */
+.ai-config-section {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.panel-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.panel-subtitle::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background-color: #6eb4f7;
+  margin-right: 8px;
+  border-radius: 2px;
+}
+
+.ai-provider-select {
+  flex-wrap: wrap;
+}
+
+.provider-select {
+  flex: 1;
+  min-width: 150px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.config-label {
+  min-width: 80px;
+  margin-right: 8px;
+  color: #555;
+  font-weight: 500;
+}
+
+.api-key-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.api-key-input {
+  flex: 1;
+  min-width: 0;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  cursor: text !important;
+}
+
+.btn-icon {
+  padding: 4px 7px;
+  min-width: auto;
+  flex-shrink: 0;
+}
+
+.btn-icon .icon {
+  margin: 0;
+  font-size: 13px;
+}
+
+.base-url-input,
+.model-id-input {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  cursor: text !important;
+}
+
+.input-hint {
+  font-size: 11px;
+  color: #999;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.provider-hint {
+  font-size: 11px;
+  color: #6eb4f7;
+  margin-left: 8px;
+  max-width: 150px;
+  white-space: normal;
+}
+
+.config-actions {
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.save-status {
+  font-size: 12px;
+  margin-left: 10px;
+  transition: opacity 0.3s ease;
+}
+
+.save-status.success { color: #29a03b; }
+.save-status.error { color: #fb2f29; }
+.save-status.loading { color: #fcaa0e; }

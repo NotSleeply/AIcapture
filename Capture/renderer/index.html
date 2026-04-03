@@ -41,10 +41,47 @@
 							<input type="checkbox" id="toolInput">
 							<label for="toolInput" id="toolLabel">截图时开启AI分析</label>
 						</div>
-						<div class="box-item">
-							<label for="apiKeyInput" class="api-key-label" style="width: 120px;">API Key：</label>
-							<input type="text" id="apiKeyInput" class="form-control api-key-input" placeholder="输入您的API Key">
-							<button class="btn btn-primary" id="btnSaveConfig">保存</button>
+
+						<!-- AI Provider Configuration -->
+						<div class="ai-config-section">
+							<div class="panel-subtitle">AI 服务配置</div>
+
+							<div class="box-item ai-provider-select">
+								<label for="providerSelect" class="config-label">AI 提供商：</label>
+								<select id="providerSelect" class="form-control provider-select">
+									<option value="deepseek">DeepSeek (推荐)</option>
+									<option value="openai">OpenAI (GPT-4o)</option>
+									<option value="doubao">豆包 (火山引擎)</option>
+								</select>
+								<span class="provider-hint" id="providerHint"></span>
+							</div>
+
+							<div class="box-item">
+								<label for="apiKeyInput" class="config-label">API Key：</label>
+								<div class="api-key-wrapper">
+									<input type="password" id="apiKeyInput" class="form-control api-key-input" placeholder="输入您的API Key">
+									<button type="button" class="btn btn-icon" id="toggleApiKeyVisibility" title="显示/隐藏API Key">
+										<span class="icon icon-eye"></span>
+									</button>
+								</div>
+							</div>
+
+							<div class="box-item" id="baseUrlItem">
+								<label for="baseUrlInput" class="config-label">Base URL：</label>
+								<input type="text" id="baseUrlInput" class="form-control base-url-input" placeholder="API基础地址(可选)">
+								<span class="input-hint" id="baseUrlHint"></span>
+							</div>
+
+							<div class="box-item" id="modelIdItem" style="display: none;">
+								<label for="modelIdInput" class="config-label">模型ID：</label>
+								<input type="text" id="modelIdInput" class="form-control model-id-input" placeholder="模型ID">
+							</div>
+
+							<div class="box-item config-actions">
+								<button class="btn btn-primary" id="btnSaveConfig">保存配置</button>
+								<button class="btn btn-default" id="btnTestConnection">测试连接</button>
+								<span class="save-status" id="saveStatus"></span>
+							</div>
 						</div>
 					</div>
 					<div class="content-panel keyboard-panel" id="keyboardBox">

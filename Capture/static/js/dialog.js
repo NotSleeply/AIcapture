@@ -1,4 +1,6 @@
 import { formatAIMessage } from "./tools/formatAIMessage.js";
+import { analyzeImage as aiAnalyzeImage, sendFollowup as aiSendFollowup, DEFAULT_IMAGE_PROMPT } from "./tools/aiClient.js";
+
 // 辅助函数
 function $(id) { return document.getElementById(id); }
 
@@ -10,230 +12,164 @@ const btnClose = $('btnClose');
 
 // 状态变量
 let imagePath = null;
-let sessionId = null;
-const API_URL = 'http://localhost:8080';
-const Presets =
-  "请对图片内容进行详尽分析。若图片是代码界面，详细解读代码逻辑，包括变量、函数、语句功能等，框选部分（若有）需逐行剖析；若是图表，阐述图表类型、数据趋势、关键数据点及代表意义；若是实物图片，说明物品名称、用途、特性等相关信息；若是场景图，描述场景构成元素、氛围、可能的地点或事件；若存在箭头指示，明确指出箭头指向的对象及关联信息；若有框选区域，精准说明框选部分的具体内容及在整体中的作用，其他部分用一句概括一下就行，主要介绍框选部分。";
+let imageBase64 = null; // 保存图片base64数据
+let chatHistory = [];   // 对话历史
+let isProcessing = false;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
-    // 从主进程获取图像数据
     window.myAPI.getImageData().then(data => {
         if (data && data.success) {
-            if (data.imageDataUrl) {
-                // 保存图片路径
+            if (data.imagePath) {
                 imagePath = data.imagePath;
-                
-                // 自动发送第一个分析请求
+                // 自动开始分析
                 setTimeout(() => {
-                    analyzeImage(Presets);
+                    handleImageAnalysis(DEFAULT_IMAGE_PROMPT);
                 }, 500);
             } else {
-                console.error('未收到有效的图片数据URL');
+                addMessage('未收到有效的图片数据', 'ai');
             }
         } else {
-            console.error('获取图片数据失败');
+            addMessage('获取图片数据失败: ' + (data?.error || '未知错误'), 'ai');
         }
     }).catch(err => {
         console.error('获取图片数据时出错:', err);
+        addMessage('获取图片数据时出错: ' + err.message, 'ai');
     });
-    
-    // 事件监听器
+
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             handleUserInput();
         }
     });
-    
     sendButton.addEventListener('click', handleUserInput);
-    
     btnClose.addEventListener('click', () => {
         window.myAPI.closeDialog();
     });
 });
 
 // 处理用户输入
-function handleUserInput() {
+async function handleUserInput() {
     const text = userInput.value.trim();
-    if (!text) return;
-    
-    // 添加用户消息到聊天区域
+    if (!text || isProcessing) return;
+
     addMessage(text, 'user');
-    
-    // 清空输入框
     userInput.value = '';
-    
-    // 如果已经有会话ID，发送后续问题，否则分析图像
-    if (sessionId) {
-        sendFollowupQuestion(text);
+
+    if (imageBase64) {
+        await handleFollowup(text);
     } else {
-        analyzeImage(text);
+        await handleImageAnalysis(text);
     }
 }
 
-// 添加消息到聊天区域
-function addMessage(text, sender) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-   if (sender === "ai") {
-     messageDiv.innerHTML = formatAIMessage(text);
-   } else {
-     messageDiv.textContent = text;
-   }
-    chatMessages.appendChild(messageDiv);
-    
-    // 滚动到底部
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+/**
+ * 分析图片 - 前端直接调用AI API
+ */
+async function handleImageAnalysis(prompt) {
+    if (isProcessing) return;
+    isProcessing = true;
 
-// 分析图像 - 使用火山引擎视觉模型
-async function analyzeImage(prompt) {
     try {
-        // 添加初始状态消息
-        addMessage("正在分析图像...", "ai");
-        
-        // 如果没有图片路径，则报错
+        addLoadingMessage();
+
         if (!imagePath) {
             throw new Error('没有有效的图片路径');
         }
-        
-        // 读取图片文件并转换为Base64
-        const base64Image = await readFileAsBase64(imagePath);
-        
-        // 创建文件对象 - 从base64字符串创建Blob
-        const binaryString = atob(base64Image);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        const imageBlob = new Blob([bytes], { type: 'image/jpeg' });
-        
-        // 准备表单数据
-        const formData = new FormData();
-        formData.append('prompt', prompt);
-        
-        // 使用名为file的参数，与后端API一致
-        formData.append('file', imageBlob, 'screenshot.jpg');
-        
-        // 可选：如果后端需要session_id
-        if (sessionId) {
-            formData.append('session_id', sessionId);
-        }
-        
-        // 发送到后端
-        const apiResponse = await fetch(`${API_URL}/analyze-image`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!apiResponse.ok) {
-            const errorText = await apiResponse.text().catch(() => '');
-            throw new Error(`后端API错误: ${apiResponse.status} ${errorText || apiResponse.statusText}`);
-        }
-        
-        const result = await apiResponse.json();
-        
-        // 移除临时消息
-        if (chatMessages.lastChild && chatMessages.lastChild.textContent === "正在使用火山引擎视觉大模型分析图像...") {
-            chatMessages.removeChild(chatMessages.lastChild);
-        }
-        
-        // 保存会话ID
-        sessionId = result.session_id;
-        console.log(`已建立会话 ID: ${sessionId}`);
-        
-        // 显示AI回复
-        addMessage(result.data, 'ai');
-        
 
-        
+        // 读取图片为Base64
+        imageBase64 = await readFileAsBase64(imagePath);
+
+        // 直接调用AI客户端分析图片
+        const result = await aiAnalyzeImage(imageBase64, prompt);
+
+        removeLoadingMessage();
+
+        // 保存到历史
+        chatHistory.push({ role: 'assistant', content: result });
+
+        addMessage(result, 'ai');
+
     } catch (error) {
-        console.error('分析图像时出错:', error);
-        
-        // 移除临时状态消息
-        if (chatMessages.lastChild && chatMessages.lastChild.textContent === "正在使用火山引擎视觉大模型分析图像...") {
-            chatMessages.removeChild(chatMessages.lastChild);
-        }
-        
-        addMessage(`图像分析失败: ${error.message}。请重试或检查后端服务是否正常运行。`, 'ai');
+        console.error('图像分析出错:', error);
+        removeLoadingMessage();
+        addMessage(`图像分析失败: ${error.message}`, 'ai');
+    } finally {
+        isProcessing = false;
     }
 }
 
-// 读取文件为Base64格式
+/**
+ * 后续追问 - 前端直接调用AI API
+ */
+async function handleFollowup(question) {
+    if (isProcessing) return;
+    isProcessing = true;
+
+    try {
+        addLoadingMessage();
+
+        // 调用AI客户端发送追问（带图片上下文）
+        const result = await aiSendFollowup(question, imageBase64, chatHistory);
+
+        removeLoadingMessage();
+
+        // 更新历史
+        chatHistory.push({ role: 'user', content: question });
+        chatHistory.push({ role: 'assistant', content: result });
+
+        addMessage(result, 'ai');
+
+    } catch (error) {
+        console.error('追问处理出错:', error);
+        removeLoadingMessage();
+
+        let msg = '问题处理失败，请重试';
+        if (error.message.includes('API Key') || error.message.includes('配置')) {
+            msg = '请先在主窗口设置中正确配置API Key和选择AI提供商';
+        }
+        addMessage(msg, 'ai');
+    } finally {
+        isProcessing = false;
+    }
+}
+
+// ===== UI 辅助函数 =====
+
+function addMessage(text, sender) {
+    const div = document.createElement('div');
+    div.className = `message ${sender}-message`;
+    div.innerHTML = sender === 'ai' ? formatAIMessage(text) : escapeHtml(text);
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addLoadingMessage() {
+    const div = document.createElement('div');
+    div.id = 'loadingIndicator';
+    div.className = 'message ai-message loading-message';
+    div.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span> 正在思考...</span>';
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeLoadingMessage() {
+    const el = document.getElementById('loadingIndicator');
+    if (el) el.remove();
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 async function readFileAsBase64(filePath) {
     try {
-        // 由于浏览器环境无法直接读取文件系统，需要通过IPC请求主进程读取文件
         const result = await window.myAPI.readFileAsBase64(filePath);
-        if (!result.success) {
-            throw new Error(result.error || '读取文件失败');
-        }
+        if (!result.success) throw new Error(result.error || '读取文件失败');
         return result.data;
-    } catch (error) {
-        console.error('读取文件为Base64失败:', error);
-        throw error;
-    }
-}
-
-// 发送后续问题 - 使用火山引擎视觉模型的上下文能力
-async function sendFollowupQuestion(question) {
-    try {
-        
-        // 添加临时状态消息
-        addMessage("正在处理问题...", "ai");
-        
-        // 调用后端API
-        const response = await fetch(`${API_URL}/image-followup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                prompt: question,
-                session_id: sessionId
-            })
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`后端API错误: ${response.status} ${errorData.detail || response.statusText}`);
-        }
-        
-        const result = await response.json();
-        
-        // 移除加载指示器和临时消息
-        if (document.getElementById('loadingIndicator')) {
-            chatMessages.removeChild(document.getElementById('loadingIndicator'))
-        }
-        
-        // 移除临时状态消息
-        if (chatMessages.lastChild && chatMessages.lastChild.textContent === "正在处理问题...") {
-            chatMessages.removeChild(chatMessages.lastChild);
-        }
-        
-        // 显示AI回复
-        addMessage(result.data, 'ai');
-        
-    } catch (error) {
-        console.error('发送后续问题时出错:', error);
-        
-        if (document.getElementById('loadingIndicator')) {
-            chatMessages.removeChild(document.getElementById('loadingIndicator'));
-        }
-        
-        // 移除临时状态消息
-        if (chatMessages.lastChild && chatMessages.lastChild.textContent === "正在处理问题...") {
-            chatMessages.removeChild(chatMessages.lastChild);
-        }
-        
-        let errorMessage = '问题处理失败，请重试';
-        
-        // 如果是会话ID错误，提示用户重新分析图像
-        if (error.message.includes("会话") || error.message.includes("session")) {
-            errorMessage = "会话已过期，请点击重新分析按钮或尝试新的问题";
-            // 重置会话ID
-            sessionId = null;
-        }
-        
-        addMessage(errorMessage, 'ai');
+    } catch (err) {
+        throw new Error('读取图片文件失败: ' + err.message);
     }
 }

@@ -1,105 +1,138 @@
 # AIcapture
 
-AIcapture 是一个用于屏幕捕获与 AI 处理的桌面应用（基于 Electron 的前端 + Python 后端），用于便捷地截取屏幕、发送到后端模型处理并将结果展示给用户。
-
+AIcapture 是一款基于 **Electron** 的智能桌面截图工具，集成 AI 能力，可直接对截取的屏幕内容进行智能分析。无需后端服务，**纯前端运行**，开箱即用。
 
 ## 主要功能
 
-- 一键/区域截图
+- **一键/区域截图** — 支持全局快捷键截图和区域框选
+- **AI 智能分析** — 截图后自动弹出 AI 分析窗口，支持多轮追问
+- **多 AI 提供商支持** — 内置 DeepSeek、OpenAI（GPT-4o）、豆包（火山引擎）三种选择
+- **前端直接调用 API** — 无需部署任何后端服务，配置 API Key 即可使用
+- **视觉理解** — OpenAI 和豆包支持图片直接理解分析
+- **可打包安装** — 支持打包为 Windows 可执行安装包
 
-- 与后端 AI 服务交互（可自定义模型）
+## 快速开始
 
-- 支持打包为 Windows 可执行安装包
+### 环境要求
 
-- 可配置、易于扩展的前端与后端分离架构
+- Node.js >= 18
+- npm 或 cnpm
+- 一个 AI 服务商的 API Key（DeepSeek / OpenAI / 豆包 任选其一）
 
-
-## 快速开始（Windows / PowerShell）
-
-1. 克隆仓库
+### 安装与运行
 
 ```powershell
+# 克隆仓库
 git clone https://github.com/<your-username>/AIcapture.git
 cd AIcapture
-```
 
-1. 前端（Electron Capture 子项目）
-
-```powershell
-cd .\Capture
-# 安装依赖（国内用户可用 cnpm 替换 npm）
+# 安装依赖
+cd Capture
 npm install
-# 开发模式
+
+# 启动开发模式
 npm run dev
-# 或者使用 nodemon 启动
-npm run start
-# 打包（需要 electron-builder）
+
+# 打包为安装包
 npm run build
 ```
 
-1. 后端（Python）
+## 使用说明
 
-```powershell
-cd ..\backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-# 如果有 requirements.txt：
-pip install -r requirements.txt
-# 启动后端服务
-python main.py
+### 1. 配置 AI 服务
+
+启动应用后，在主窗口点击「**配置**」面板：
+
+1. **选择 AI 提供商**
+   - `DeepSeek`（推荐）— 性价比高，超长上下文，仅文本对话
+   - `OpenAI`（GPT-4o）— 功能全面，支持图片视觉分析
+   - `豆包（火山引擎）`— 国产大模型，视觉能力优秀
+
+2. **填写 API Key** — 对应提供商的密钥
+
+3. **可选配置**
+   - Base URL：自定义 API 地址（留空使用默认值）
+   - 模型 ID：豆包用户可指定具体模型
+
+4. 点击「**保存配置**」，建议点击「**测试连接**」确认可用
+
+### 2. 截图与分析
+
+- 点击「**开始截图**」或使用快捷键（默认 `Alt + S`）
+- 框选区域后自动弹出 AI 分析窗口
+- AI 自动对截图内容进行详细分析
+- 可在输入框中继续提问，支持多轮对话
+
+### 3. 其他设置
+
+| 功能 | 说明 |
+|------|------|
+| 截图时隐藏当前窗口 | 截图时自动隐藏应用窗口 |
+| 截图时开启AI分析 | 截图完成后自动打开AI分析窗口 |
+| 自定义快捷键 | 可修改截图快捷键 |
+
+## 支持的 AI 提供商详情
+
+### DeepSeek
+- 默认模型：`deepseek-chat`
+- API 地址：`https://api.deepseek.com`
+- 特点：性价比高，不支持直接图片分析（会提示切换提供商）
+
+### OpenAI
+- 默认模型：`gpt-4o-mini`（视觉模型：`gpt-4o`）
+- API 地址：`https://api.openai.com/v1`
+- 特点：功能全面，支持图片直接视觉分析
+
+### 豆包（火山引擎）
+- 默认模型：`doubao-lite-32k-250115`
+- 视觉模型：`doubao-1-5-vision-pro-32k-250115`
+- API 地址：火山引擎方舟控制台获取
+- 特点：国产大模型，视觉能力优秀
+
+## 项目结构
+
+```
+AIcapture/
+├── Capture/                  # Electron 前端主程序
+│   ├── main/                 # 主进程代码
+│   │   ├── index.js          # 应用入口与窗口管理
+│   │   └── capture.js        # 截图逻辑与IPC处理
+│   ├── renderer/             # 渲染进程页面
+│   │   ├── index.html        # 主窗口（配置面板）
+│   │   └── dialog.html       # AI分析对话框
+│   ├── static/
+│   │   ├── js/               # 前端JS
+│   │   │   ├── tools/
+│   │   │   │   ├── aiClient.js     # AI客户端（多提供商支持）
+│   │   │   │   └── ...
+│   │   │   ├── index.js      # 主窗口交互逻辑
+│   │   │   └── dialog.js     # AI分析对话框逻辑
+│   │   └── css/              # 样式文件
+│   └── preloader/            # Electron preload脚本
+├── CONTRIBUTING.md
+├── LICENSE                   # MIT License
+└── README.md
 ```
 
-请根据 `backend/chat.py` / `backend/main.py` 中的依赖自行安装。
+## 技术栈
 
+| 技术 | 用途 |
+|------|------|
+| Electron | 桌面应用框架 |
+| electron-screenshots | 截图组件 |
+| OpenAI Compatible API | 统一AI接口协议 |
+| localStorage | 本地配置持久化 |
 
-## 运行逻辑
+## 安全提示
 
-- 前端负责截屏、用户交互与界面展示。
-
-- 前端通过本地或远程接口将截图/数据发送给后端。
-
-- 后端负责调用模型（或代理到第三方模型）并返回处理结果。
-
-
-## 配置
-
-- 请查看 `Capture` 与 `backend` 目录下的配置文件或代码注释来设置 API 地址、模型参数及本地路径。
-
-- 项目提供了一个示例环境变量文件 `.env.example`，用于说明需要配置的密钥与参数。请复制该文件为 `.env` 并填写实际值（不要将 `.env` 提交到公共仓库）：
-
-```powershell
-# 在项目根目录执行（PowerShell）
-Copy-Item -Path .\.env.example -Destination .\.env -Force
-notepad .\.env  # 或使用你喜欢的编辑器打开并填写
-```
-
-- 关键环境变量（至少需要填写以下项，按需调整）：
-  - `OPENAI_API_KEY`：OpenAI / Deepseek API Key
-  - `OPENAI_BASE_URL`：可选，自定义 API 基础 URL（例如 `https://api.deepseek.com`）
-  - `VOLC_ARK_API_KEY`：火山引擎 Ark 的 API Key（用于视觉模型）
-  - `VISION_MODEL`：火山引擎视觉模型 ID（默认示例：`doubao-1-5-vision-pro-32k-250115`）
-  - `BACKEND_PORT`：后端服务监听端口（例如 `8080`，可选）
-
-- 项目根目录已包含 `.gitignore`，默认会忽略 `.env`。请确保不要将含有密钥的 `.env` 推送到远程仓库；如果需要共享配置，可只提交不含真实密钥的 `.env.example`。
-
-
-## 测试
-
-- 前端：根据项目中是否包含测试框架运行对应命令（如有）。
-
-- 后端：推荐使用 pytest 编写单元测试并运行 `pytest`。
-
-
-## 贡献
-
-- 欢迎贡献！请参阅 `CONTRIBUTING.md`，Fork 仓库 -> 新分支 -> 提交 PR。
-
+- API Key 存储在本地 localStorage 中，不会上传到任何服务器
+- 请勿将含有 API Key 的配置分享给他人
+- 推荐使用具有权限限制的 API Key
 
 ## 许可证
 
-本项目采用 MIT 许可证，详见 `LICENSE`。
+本项目采用 [MIT](LICENSE) 许可证。
 
+## 贡献
 
-## 联系方式
-
-如需报告安全问题或其它重要事宜，请通过 GitHub Issues 或者在仓库中留下联系方式（请替换为你的邮箱）。
+欢迎贡献！请参阅 `CONTRIBUTING.md`，Fork 仓库 -> 新分支 -> 提交 PR。
