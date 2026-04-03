@@ -24,6 +24,7 @@ function captureWin(mainWindow, imgDir) {
   global.enableAIAnalysis = true; // 默认启用AI分析
   let dialogWindow = null; // 对话窗口引用
   let editorWindow = null; // 编辑器窗口引用
+  let galleryWindow = null; // 图库窗口引用
   let currentImageBuffer = null; // 临时保存当前截图数据
   let currentImagePath = null; // 临时保存当前截图路径
   let editedImagePath = null; // 编辑后的图片路径
@@ -404,6 +405,51 @@ function captureWin(mainWindow, imgDir) {
       createDialogWindow();
     }
   });
+
+  // ===== 图库相关 =====
+
+  // 打开图库窗口
+  ipcMain.on("open-gallery", () => {
+    createGalleryWindow();
+  });
+
+  function createGalleryWindow() {
+    if (galleryWindow) {
+      galleryWindow.focus();
+      return;
+    }
+
+    galleryWindow = new BrowserWindow({
+      width: 1000,
+      height: 700,
+      minWidth: 700,
+      minHeight: 500,
+      title: "截图历史 - AIcapture",
+      autoHideMenuBar: true,
+      resizable: true,
+      frame: false,
+      webPreferences: {
+        devTools: true,
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, "../preloader/preload.js"),
+      },
+    });
+
+    const galleryURL = format({
+      protocol: "file",
+      slashes: true,
+      pathname: path.join(__dirname, "../renderer/gallery.html"),
+    });
+
+    galleryWindow.loadURL(galleryURL);
+
+    if (process.env.NODE_ENV === "development") {
+      galleryWindow.webContents.openDevTools();
+    }
+
+    galleryWindow.on("closed", () => { galleryWindow = null; });
+  }
   // AI 分析设置处理
   ipcMain.on("set-ai-analysis", (event, status) => {
     global.enableAIAnalysis = !!status;

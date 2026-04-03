@@ -3,6 +3,7 @@ import { analyzeImage as aiAnalyzeImage, sendFollowup as aiSendFollowup, DEFAULT
 import OCRManager from "./tools/ocrEngine.js";
 import { ExportUtils, CodeCopyManager } from "./tools/exportUtils.js";
 import promptTemplates from "./tools/promptTemplates.js";
+import historyDB from "./tools/historyDB.js";
 
 // 辅助函数
 function $(id) { return document.getElementById(id); }
@@ -58,7 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     sendButton.addEventListener('click', handleUserInput);
-    btnClose.addEventListener('click', () => {
+    btnClose.addEventListener('click', async () => {
+        // 保存到历史图库
+        try {
+            await historyDB.init();
+            await historyDB.saveScreenshot({
+                imageDataUrl: currentImageDataUrl,
+                imagePath: imagePath,
+                width: 0, height: 0, // 可从图片获取
+                chatHistory: chatHistory,
+                analysisResult: chatHistory.length > 1 ? chatHistory[chatHistory.length - 1]?.content : null,
+                tags: [],
+            });
+        } catch (e) {
+            console.warn('[Gallery] 保存到历史失败:', e);
+        }
+        
         window.myAPI.closeDialog();
         OCRManager.terminate(); // 清理OCR资源
     });

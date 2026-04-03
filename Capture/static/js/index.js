@@ -8,6 +8,7 @@ function $(id) {
 }
 const btnCapture = $("btnCapture");
 const btnScrollCapture = $("btnScrollCapture");
+const btnGallery = $("btnGallery");
 const captureKeyBox = $("captureKeyBox");
 const showKeyBox = $("showKeyBox");
 const btnSetCaptureKey = $("btnSetCaptureKey");
@@ -133,6 +134,13 @@ ipcRenderer.on("scroll-capture-status", (event, data) => {
     setTimeout(() => { tipsWrap.style.display = "none"; }, 3000);
   }
 });
+
+// 图库按钮事件
+if (btnGallery) {
+  btnGallery.addEventListener("click", () => {
+    ipcRenderer.send('open-gallery');
+  });
+}
 // 截图完成显示提示弹层
 ipcRenderer.on("popup-tips", () => {
   tipsWrap.style.display = "block";

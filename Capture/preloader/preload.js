@@ -44,7 +44,8 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
             'trigger-capture',
             "set-ai-analysis",
             'close-dialog',
-            'scroll-capture'
+            'scroll-capture',
+            'open-gallery'
         ];
         if (validChannels.includes(channel)) {
             ipcRenderer.send(channel, data);

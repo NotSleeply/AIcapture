@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>截图历史 - AIcapture</title>
+    <link rel="stylesheet" href="../static/css/gallery.css">
+</head>
+<body class="gallery-page">
+    <div class="gallery-container">
+        <!-- 顶部操作栏 -->
+        <div class="gallery-toolbar">
+            <div class="toolbar-left">
+                <h3>📸 截图历史</h3>
+            </div>
+            <div class="toolbar-center">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索标签、备注...">
+            </div>
+            <div class="toolbar-right">
+                <select id="filterSelect" class="filter-select">
+                    <option value="all">全部</option>
+                    <option value="today">今天</option>
+                    <option value="week">本周</option>
+                    <option value="analyzed">已分析</option>
+                </select>
+                <button class="btn btn-sm btn-default" id="btnSettings">⚙️ 设置</button>
+                <button class="btn btn-sm btn-default" id="btnClearAll">清空</button>
+            </div>
+        </div>
+
+        <!-- 统计信息栏 -->
+        <div class="stats-bar" id="statsBar">
+            <span id="totalStats">共 0 条记录</span>
+        </div>
+
+        <!-- 图库网格 -->
+        <div class="gallery-grid" id="galleryGrid">
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <span class="empty-icon">📷</span>
+                <p>暂无截图记录</p>
+                <p class="empty-hint">截图后会自动保存到这里</p>
+            </div>
+            <div class="loading-state" id="loadingState">
+                <p>加载中...</p>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- 图片预览弹窗 -->
+    <div id="previewModal" class="modal-overlay preview-modal" style="display:none;">
+        <div class="preview-content">
+            <button class="preview-close" id="previewClose">&times;</button>
+            <div class="preview-image-wrap">
+                <img id="previewImage" src="" alt="预览">
+            </div>
+            <div class="preview-info">
+                <div class="preview-meta" id="previewMeta"></div>
+                <div class="preview-tags" id="previewTags"></div>
+                <div class="preview-note">
+                    <textarea id="noteInput" placeholder="添加备注..." rows="2"></textarea>
+                    <button class="btn btn-sm btn-primary" id="btnSaveNote">保存备注</button>
+                </div>
+                <div class="preview-actions">
+                    <button class="btn btn-sm btn-primary" id="btnReanalyze">重新分析</button>
+                    <button class="btn btn-sm btn-default" id="btnExport">导出</button>
+                    <button class="btn btn-sm btn-negative" id="btnDeleteRecord">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="modal-overlay settings-modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>图库设置</h4>
+                <button class="btn-close-modal" id="closeSettingsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label>最大保存数量:</label>
+                    <input type="number" id="settingMaxCount" min="10" max="1000" value="100">
+                </div>
+                <div class="setting-item">
+                    <label>保留天数:</label>
+                    <input type="number" id="settingMaxDays" min="1" max="365" value="30">
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="settingAutoSave" checked> 自动保存截图到历史</label>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnSaveSettings">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/js/gallery.js" type="module"></script>
+</body>
+</html>
