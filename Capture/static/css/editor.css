@@ -1,0 +1,318 @@
+/* ===== 编辑器窗口整体布局 ===== */
+.editor-window {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    overflow: hidden;
+}
+
+/* ===== 顶部工具栏 ===== */
+.editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: linear-gradient(180deg, #2d2d2d, #252525);
+    border-bottom: 1px solid #3a3a3a;
+    min-height: 48px;
+    -webkit-app-region: drag;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    -webkit-app-region: no-drag;
+}
+
+.toolbar-center {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    -webkit-app-region: no-drag;
+}
+
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background-color: #444;
+    margin: 0 6px;
+}
+
+/* ===== 工具按钮 ===== */
+.tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: #b0b0b0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.tool-btn:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.tool-btn.active {
+    background-color: rgba(45, 140, 240, 0.25);
+    color: #2D8CF0;
+    border-color: #2D8CF0;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.action-btn:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #ccc;
+}
+
+.action-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* ===== 颜色选择器 ===== */
+.color-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.color-label, .size-label {
+    font-size: 12px;
+    color: #999;
+}
+
+.color-options {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.color-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 0;
+}
+
+.color-btn:hover {
+    transform: scale(1.2);
+}
+
+.color-btn.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(45, 140, 240, 0.6);
+}
+
+/* ===== 线宽选择器 ===== */
+.size-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.size-select {
+    background-color: #333;
+    color: #ddd;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+}
+
+.size-select:focus {
+    border-color: #2D8CF0;
+}
+
+/* ===== 操作按钮组 ===== */
+.action-group {
+    gap: 8px;
+}
+
+.btn {
+    padding: 5px 14px;
+    border: none;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2D8CF0, #1a7ad9);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(45, 140, 240, 0.35);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #409eff, #2d8cf0);
+    box-shadow: 0 3px 10px rgba(45, 140, 240, 0.5);
+}
+
+.btn-default {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #bbb;
+    border: 1px solid #555;
+}
+
+.btn-default:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border-color: #777;
+}
+
+/* ===== 画布容器 ===== */
+.canvas-container {
+    position: relative;
+    flex: 1;
+    overflow: auto;
+    background-color: #222;
+    background-image:
+        radial-gradient(circle, #333 1px, transparent 1px);
+    background-size: 16px 16px;
+    cursor: default;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 10px;
+}
+
+.canvas-container canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: calc(100% - 20px);
+    max-height: calc(100% - 20px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+#mainCanvas {
+    z-index: 1;
+}
+
+#drawCanvas {
+    z-index: 2;
+    cursor: crosshair;
+}
+
+/* ===== 文字输入层 ===== */
+.text-overlay {
+    position: absolute;
+    z-index: 10;
+}
+
+.text-input {
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    border: 2px solid #2D8CF0;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 16px;
+    outline: none;
+    min-width: 200px;
+    font-family: 'Microsoft YaHei', sans-serif;
+}
+
+/* ===== 裁剪遮罩 ===== */
+.crop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.6);
+    cursor: crosshair;
+    display: none;
+}
+
+.crop-selection {
+    position: absolute;
+    border: 2px dashed #2D8CF0;
+    background: rgba(45, 140, 240, 0.08);
+    pointer-events: none;
+}
+
+/* ===== 底部状态栏 ===== */
+.editor-statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 12px;
+    background-color: #1a1a1a;
+    border-top: 1px solid #333;
+    font-size: 11px;
+    color: #777;
+    min-height: 26px;
+}
+
+#statusText {
+    color: #999;
+}
+
+#imageInfo {
+    color: #666;
+    font-family: Consolas, monospace;
+}
+
+/* ===== 工具特定光标 ===== */
+.cursor-pen { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="4" fill="none" stroke="%23228B22" stroke-width="2"/><line x1="17" y1="17" x2="21" y2="21" stroke="%23228B22" stroke-width="2"/></svg>') 11 11, crosshair !important; }
+.cursor-arrow { cursor: crosshair !important; }
+.cursor-rect { cursor: crosshair !important; }
+.cursor-text { cursor: text !important; }
+.cursor-mosaic { cursor: cell !important; }
+.cursor-blur { cursor: cell !important; }
+.cursor-crop { cursor: crosshair !important; }
+
+/* ===== 响应式调整 ===== */
+@media (max-width: 900px) {
+    .toolbar-center {
+        display: none;
+    }
+    
+    .color-picker-group, .size-picker-group {
+        display: none;
+    }
+}

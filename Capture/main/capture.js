@@ -22,8 +22,10 @@ function captureWin(mainWindow, imgDir) {
   global.isCutHideWindows = false; // 默认隐藏设置
   global.enableAIAnalysis = true; // 默认启用AI分析
   let dialogWindow = null; // 对话窗口引用
+  let editorWindow = null; // 编辑器窗口引用
   let currentImageBuffer = null; // 临时保存当前截图数据
   let currentImagePath = null; // 临时保存当前截图路径
+  let editedImagePath = null; // 编辑后的图片路径
   let cutKey = ""; // 初始化快捷键
   let showKey = ""; // 初始化显示设置
 
@@ -109,9 +111,9 @@ function captureWin(mainWindow, imgDir) {
       }
     }
     mainWindow.setSkipTaskbar(false);
-    // 创建并显示对话窗口
+    // 创建并显示编辑器窗口（在AI分析前）
     if (global.enableAIAnalysis) {
-      createDialogWindow();
+      createEditorWindow();
     }
 
     // 通知渲染进程截图已完成
@@ -120,6 +122,48 @@ function captureWin(mainWindow, imgDir) {
     // 恢复点击状态
     mainWindow.webContents.send("has-click-cut", false);
   });
+
+  // 创建编辑器窗口（截图后、AI分析前的编辑层）
+  function createEditorWindow() {
+    if (editorWindow) {
+      editorWindow.close();
+      editorWindow = null;
+    }
+
+    editorWindow = new BrowserWindow({
+      width: 1000,
+      height: 750,
+      minWidth: 800,
+      minHeight: 600,
+      title: "截图编辑",
+      autoHideMenuBar: true,
+      resizable: true,
+      frame: false,
+      alwaysOnTop: true,
+      webPreferences: {
+        devTools: true,
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, "../preloader/preloadEditor.js"),
+      },
+    });
+
+    const editorURL = format({
+      protocol: "file",
+      slashes: true,
+      pathname: path.join(__dirname, "../renderer/editor.html"),
+    });
+
+    editorWindow.loadURL(editorURL);
+
+    if (process.env.NODE_ENV === "development") {
+      editorWindow.webContents.openDevTools();
+    }
+
+    editorWindow.on("closed", () => {
+      editorWindow = null;
+    });
+  }
 
   // 创建对话窗口
   function createDialogWindow() {
@@ -168,20 +212,32 @@ function captureWin(mainWindow, imgDir) {
     });
   }
 
-  // 获取图像数据
+  // 获取图像数据（支持编辑后的图片）
   ipcMain.handle("get-image-data", () => {
-    if (currentImageBuffer && currentImagePath) {
+    const imagePathToUse = editedImagePath && fs.existsSync(editedImagePath) ? editedImagePath : currentImagePath;
+    
+    if (currentImageBuffer && imagePathToUse) {
       try {
-        // 将Buffer转换为dataURL格式用于预览
-        const nImage = nativeImage.createFromBuffer(currentImageBuffer);
+        let imageBuffer = currentImageBuffer;
+        
+        // 如果有编辑后图片，读取编辑后的
+        if (editedImagePath && fs.existsSync(editedImagePath)) {
+          try {
+            imageBuffer = fs.readFileSync(editedImagePath);
+          } catch (e) {
+            console.error("读取编辑后图片失败，使用原图:", e);
+          }
+        }
+
+        const nImage = nativeImage.createFromBuffer(imageBuffer);
         const dataURL = nImage.toPNG
           ? "data:image/png;base64," + nImage.toPNG().toString("base64")
           : nImage.toDataURL();
 
         return {
           success: true,
-          imageDataUrl: dataURL, // 用于预览
-          imagePath: currentImagePath, // 本地文件路径
+          imageDataUrl: dataURL,
+          imagePath: imagePathToUse,
           imageSize: {
             width: nImage.getSize().width,
             height: nImage.getSize().height,
@@ -296,6 +352,57 @@ function captureWin(mainWindow, imgDir) {
       dialogWindow.close();
     }
   });
+
+  // ===== 编辑器相关 IPC 处理 =====
+
+  // 保存编辑后的图片
+  ipcMain.handle("save-edited-image", async (event, dataURL) => {
+    try {
+      // 从 dataURL 提取 base64 数据
+      const base64Data = dataURL.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, "base64");
+
+      // 生成新文件名保存编辑后图片
+      const timestamp = new Date().getTime();
+      const filename = `edited_${timestamp}.png`;
+      editedImagePath = path.join(imgDir, filename);
+
+      fs.writeFileSync(editedImagePath, buffer);
+
+      return {
+        success: true,
+        filePath: editedImagePath,
+        imagePath: editedImagePath,
+      };
+    } catch (error) {
+      console.error("保存编辑图片失败:", error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // 关闭编辑器窗口并决定是否进入AI分析
+  ipcMain.on("close-editor", (event, hasEdited) => {
+    if (editorWindow) {
+      editorWindow.close();
+      editorWindow = null;
+    }
+
+    // 如果用户进行了编辑，使用编辑后的图片路径；否则使用原图
+    if (hasEdited && editedImagePath && fs.existsSync(editedImagePath)) {
+      currentImagePath = editedImagePath;
+      // 更新 imageBuffer 以便导出等操作使用
+      try {
+        currentImageBuffer = fs.readFileSync(editedImagePath);
+      } catch (e) {
+        console.error("读取编辑后图片失败:", e);
+      }
+    }
+
+    // 打开AI分析对话框
+    if (global.enableAIAnalysis) {
+      createDialogWindow();
+    }
+  });
   // AI 分析设置处理
   ipcMain.on("set-ai-analysis", (event, status) => {
     global.enableAIAnalysis = !!status;
@@ -384,11 +491,17 @@ function captureWin(mainWindow, imgDir) {
     if (dialogWindow) {
       dialogWindow.close();
     }
+    if (editorWindow) {
+      editorWindow.close();
+    }
 
     // 清理缓存文件
     try {
       if (currentImagePath && fs.existsSync(currentImagePath)) {
         fs.unlinkSync(currentImagePath);
+      }
+      if (editedImagePath && fs.existsSync(editedImagePath)) {
+        fs.unlinkSync(editedImagePath);
       }
     } catch (err) {
       console.error("清理缓存文件失败:", err);

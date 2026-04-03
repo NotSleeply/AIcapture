@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>截图编辑</title>
+    <link rel="stylesheet" href="../static/css/editor.css">
+</head>
+<body>
+    <div class="editor-window">
+        <!-- 顶部工具栏 -->
+        <div class="editor-toolbar">
+            <div class="toolbar-left">
+                <div class="tool-group">
+                    <button class="tool-btn active" data-tool="pen" title="画笔 (P)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="arrow" title="箭头 (A)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M22,2L16.58,7.42L18.75,7.92L11,15.75V19H14.25L22,11.19L22.5,13.36L23,13.36L23,2H22Z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="rect" title="矩形框 (R)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M3,3H21V21H3V3M5,5V19H19V5H5Z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="text" title="文字标注 (T)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M5,4V7H10.5V19H13.5V7H19V4H5Z"/></svg>
+                    </button>
+                </div>
+                <div class="divider"></div>
+                <div class="tool-group">
+                    <button class="tool-btn" data-tool="mosaic" title="马赛克 (M)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M4,4H8V8H4V4M10,4H14V8H10V4M16,4H20V8H16V4M4,10H8V14H4V10M10,10H14V14H10V10M16,10H20V14H16V10M4,16H8V20H4V16M10,16H14V20H10V16M16,16H20V20H16V16Z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="blur" title="模糊 (B)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6,3H18A2,2 0 0,1 20,5V3A2,2 0 0,0 18,1H6A2,2 0 0,0 4,3V5A2,2 0 0,1 6,3M6,7H18A2,2 0 0,1 20,9V7A2,2 0 0,0 18,5H6A2,2 0 0,0 4,7V9A2,2 0 0,1 6,7M6,11H18A2,2 0 0,1 20,13V11A2,2 0 0,0 18,9H6A2,2 0 0,0 4,11V13A2,2 0 0,1 6,11M6,15H18A2,2 0 0,1 20,17V15A2,2 0 0,0 18,13H6A2,2 0 0,0 4,15V17A2,2 0 0,1 6,15M6,19H18A2,2 0 0,1 20,21V19A2,2 0 0,0 18,17H6A2,2 0 0,0 4,19V21A2,2 0 0,1 6,19Z"/></svg>
+                    </button>
+                </div>
+                <div class="divider"></div>
+                <div class="tool-group">
+                    <button class="tool-btn" data-tool="crop" title="裁剪 (C)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M17.73,9.67L21.41,5.99L19,3.59L15.32,7.27V9H17.73M17.73,13.33L19,15.72L15.32,19.41L21.41,13.32L19,10.91H17.73V13.33M4.27,9.67H6.68V7.27L3,3.59L0.59,5.99L4.27,9.67M4.27,13.33V10.91H3L0.59,13.32L3,15.72L4.27,13.33Z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="toolbar-center">
+                <!-- 颜色选择器 -->
+                <div class="color-picker-group" id="colorPickerGroup">
+                    <span class="color-label">颜色:</span>
+                    <div class="color-options">
+                        <button class="color-btn active" data-color="#ff0000" style="background:#ff0000" title="红色"></button>
+                        <button class="color-btn" data-color="#00ff00" style="background:#00ff00" title="绿色"></button>
+                        <button class="color-btn" data-color="#ffff00" style="background:#ffff00" title="黄色"></button>
+                        <button class="color-btn" data-color="#0000ff" style="background:#0000ff" title="蓝色"></button>
+                        <button class="color-btn" data-color="#ffffff" style="background:#fff; border: 1px solid #ccc" title="白色"></button>
+                        <button class="color-btn" data-color="#000000" style="background:#000" title="黑色"></button>
+                    </div>
+                </div>
+                <!-- 线宽选择器 -->
+                <div class="size-picker-group" id="sizePickerGroup">
+                    <span class="size-label">线宽:</span>
+                    <select id="strokeWidth" class="size-select">
+                        <option value="2">细 (2px)</option>
+                        <option value="4" selected>中 (4px)</option>
+                        <option value="8">粗 (8px)</option>
+                        <option value="12">特粗 (12px)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="toolbar-right">
+                <div class="tool-group">
+                    <button class="action-btn" id="undoBtn" title="撤销 (Ctrl+Z)" disabled>
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z"/></svg>
+                    </button>
+                    <button class="action-btn" id="redoBtn" title="重做 (Ctrl+Y)" disabled>
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z"/></svg>
+                    </button>
+                </div>
+                <div class="divider"></div>
+                <div class="tool-group action-group">
+                    <button class="btn btn-primary" id="confirmBtn" title="确认编辑并继续">
+                        ✓ 完成
+                    </button>
+                    <button class="btn btn-default" id="skipBtn" title="跳过编辑">
+                        跳过
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 画布区域 -->
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="mainCanvas"></canvas>
+            <canvas id="drawCanvas"></canvas>
+            <!-- 文字输入层 -->
+            <div id="textOverlay" class="text-overlay" style="display: none;">
+                <input type="text" id="textInput" class="text-input" placeholder="输入文字...">
+            </div>
+            <!-- 裁剪遮罩 -->
+            <div id="cropOverlay" class="crop-overlay" style="display: none;">
+                <div class="crop-selection" id="cropSelection"></div>
+            </div>
+        </div>
+
+        <!-- 底部状态栏 -->
+        <div class="editor-statusbar">
+            <span id="statusText">就绪 - 选择工具开始编辑</span>
+            <span id="imageInfo">-</span>
+        </div>
+    </div>
+
+    <script src="../static/js/editor.js" type="module"></script>
+</body>
+</html>
