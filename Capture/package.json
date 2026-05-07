@@ -39,6 +39,7 @@
   "dependencies": {
     "electron-screenshots": "^0.6.1",
     "fe-logs": "^1.0.13",
+    "ip-address": "^10.2.0",
     "tesseract.js": "^7.0.0"
   }
 }
