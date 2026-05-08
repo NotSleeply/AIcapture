@@ -49,17 +49,17 @@ feat: 支持区域截图并保存为 PNG
 
 ## 代码风格与质量
 
-- 前端（src）建议遵循常见的 JavaScript/TypeScript 风格，项目没有强制 linter 时请保持清晰易读。
+- 主进程代码位于 `src/main`，建议遵循常见的 JavaScript 风格，项目没有强制 linter 时请保持清晰易读。
 - 后端（Python）请遵循 PEP8 风格，推荐使用 black/flake8 做格式化与检查。
 - 新增功能应包含单元测试或集成测试（如适用）。
 
 ## 本地开发与测试
 
-- 前端（Electron）
+- 无 GUI Electron 任务
 
 ```powershell
 pnpm install
-pnpm dev
+pnpm capture
 ```
 
 - 后端（Python）

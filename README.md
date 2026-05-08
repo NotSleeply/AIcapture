@@ -1,192 +1,82 @@
 # AIcapture
 
-AIcapture 是一款基于 **Electron** 的智能桌面截图工具，集成 AI 能力与 OCR 文字提取，可直接对截取的屏幕内容进行智能分析、编辑标注和文字识别。无需后端服务，**纯前端运行**，开箱即用。
+AIcapture 是一个无 GUI 的 Electron 截图分析工具。每次运行都会自动截取主屏幕，将截图发送到火山引擎方舟 Responses API，并把分析结果打印到终端。
 
-## 主要功能
+## 功能
 
-### 截图与捕获
-- **一键/区域截图** — 支持全局快捷键截图（默认 `Alt + S`）和区域框选
-- **滚动长截图** — 自动滚动页面并垂直拼接，支持对长网页/文档进行完整捕获，自动检测页面底部停止
-
-### 图片编辑器
-- **画笔标注** — 自由绘制标注线条
-- **箭头/矩形框** — 添加指向性箭头或区域高亮框
-- **文字注释** — 在图片上直接添加文字说明
-- **马赛克 / 模糊** — 隐私保护，对敏感信息进行遮挡处理
-- **裁剪** — 裁剪图片到需要的尺寸
-- **撤销 / 重做** — 支持操作回退和重做
-
-### AI 分析
-- **AI 智能分析** — 截图后自动弹出 AI 分析窗口，支持多轮追问
-- **多 AI 提供商支持** — 内置 DeepSeek、OpenAI（GPT-4o）、豆包（火山引擎）三种选择
-- **视觉理解** — OpenAI 和豆包支持图片直接理解分析
-- **自定义提示词模板** — 7 种内置分析场景模板 + 自定义模板管理
-- **前端直接调用 API** — 无需部署任何后端服务，配置 API Key 即可使用
-
-### OCR 文字识别
-- **离线 OCR 引擎** — 基于 Tesseract.js v5，完全本地运行，无需联网
-- **一键复制** — 提取的文字一键复制到剪贴板
-- **发送给 AI** — 将识别结果直接发送给 AI 进行进一步分析
-
-### 结果导出
-- **Markdown 导出** — 将 AI 对话导出为 Markdown 格式文档
-- **TXT 导出** — 纯文本格式导出对话记录
-- **图片保存** — 将当前截图保存为图片文件
-- **代码块复制** — AI 回复中的代码块一键复制
-
-### 历史图库
-- **自动保存** — 每次截图分析完成后自动保存到本地历史
-- **IndexedDB 存储** — 高性能本地数据库，支持大量历史记录
-- **标签管理** — 为截图添加自定义标签便于分类检索
-- **搜索过滤** — 支持按关键词、标签筛选历史记录
-- **备注功能** — 为每条历史添加备注说明
-- **分页浏览** — 网格视图展示，分页加载提升浏览体验
+- 启动即截图，无窗口、无托盘、无交互流程
+- 自动保存本次截图到 `src/img/`
+- 使用火山引擎方舟 `/responses` 协议发送图片和提示词
+- 只需要 4 个配置项：`ai_base_url`、`ai_api_key`、`ai_model`、`AI_PROMPT`
 
 ## 快速开始
 
-### 环境要求
-
-- Node.js >= 18
-- pnpm >= 10
-- 一个 AI 服务商的 API Key（DeepSeek / OpenAI / 豆包 任选其一）
-
-### 安装与运行
+### 安装依赖
 
 ```powershell
-# 克隆仓库
-git clone https://github.com/<your-username>/AIcapture.git
-cd AIcapture
-
-# 安装依赖
 pnpm install
-
-# 启动开发模式
-pnpm dev
-
-# 打包为安装包
-pnpm build
 ```
 
-## 使用说明
+### 配置
 
-### 1. 配置 AI 服务
+基于 `.env.example` 创建本地 `.env`：
 
-启动应用后，在主窗口点击「**配置**」面板：
+```env
+ai_base_url=https://ark.cn-beijing.volces.com/api/v3
+ai_api_key=你的火山引擎方舟 API Key
+ai_model=doubao-seed-2-0-mini-260428
+AI_PROMPT=请分析这张屏幕截图的主要内容，指出关键界面、文本、问题或下一步建议。
+```
 
-| 提供商 | 默认模型 | 特点 |
-|--------|----------|------|
-| `DeepSeek` | deepseek-chat | 性价比高，超长上下文，仅文本对话 |
-| `OpenAI` | gpt-4o-mini（视觉：gpt-4o） | 功能全面，支持图片视觉分析 |
-| `豆包` | doubao-lite-32k-250115 | 国产大模型，视觉能力优秀 |
+也可以直接设置环境变量：
 
-1. 选择 AI 提供商并填写对应的 API Key
-2. 可选：自定义 Base URL 和模型 ID
-3. 点击「**保存配置**」，建议点击「**测试连接**」确认可用
+```powershell
+$env:ai_base_url="https://ark.cn-beijing.volces.com/api/v3"
+$env:ai_api_key="你的火山引擎方舟 API Key"
+$env:ai_model="doubao-seed-2-0-mini-260428"
+$env:AI_PROMPT="请分析这张屏幕截图的主要内容，指出关键界面、文本、问题或下一步建议。"
+pnpm capture
+```
 
-### 2. 截图工作流
+### 运行
 
-**基础流程：**
-- 点击「**开始截图**」或使用快捷键 → 框选区域 → 进入**编辑器**（可选标注/裁剪）→ 弹出 **AI 分析窗口**
+```powershell
+pnpm capture
+```
 
-**滚动长截图：**
-- 点击「**滚动截图**」按钮 → 选择目标窗口/应用 → 自动滚动拼接 → 完成长图捕获
+## 配置项
 
-**OCR 文字识别：**
-- 截图后在 AI 分析窗口顶部点击「**OCR 识别**」→ 等待文字提取完成 → 一键复制或发送给 AI
-
-### 3. 历史图库
-
-- 点击主界面「**图库**」按钮进入历史浏览器
-- 所有截图在关闭 AI 对话窗口时自动保存
-- 支持按标签分类、关键词搜索、添加备注
-
-### 4. 其他设置
-
-| 功能 | 说明 |
+| 变量 | 说明 |
 |------|------|
-| 截图时隐藏当前窗口 | 截图时自动隐藏应用窗口 |
-| 截图时开启 AI 分析 | 截图完成后自动打开 AI 分析窗口 |
-| 自定义快捷键 | 可修改截图快捷键 |
+| `ai_base_url` | 火山引擎方舟 API 地址，例如 `https://ark.cn-beijing.volces.com/api/v3` |
+| `ai_api_key` | 火山引擎方舟 API Key |
+| `ai_model` | 视觉模型 ID，例如 `doubao-seed-2-0-mini-260428` |
+| `AI_PROMPT` | 发送给 AI 的截图分析提示词 |
 
 ## 项目结构
 
-```
+```text
 AIcapture/
-├── src/                              # Electron 应用源码与静态资源
-│   ├── main/                         # 主进程代码
-│   │   ├── index.js                  # 应用入口与窗口管理
-│   │   ├── capture.js                # 截图逻辑、IPC 处理、窗口协调
+├── scripts/
+│   └── run-electron.js               # 清理 Electron Node 模式后启动应用
+├── src/
+│   ├── main/
+│   │   ├── index.js                  # 截图 -> AI -> 输出 -> 退出
 │   │   └── tools/
-│   │       ├── startCapture.js       # 截图启动
-│   │       ├── buildImg.js           # 图片构建
-│   │       ├── cleanImg.js           # 临时文件清理
-│   │       ├── scrollCapture.js      # 滚动长截图引擎
-│   │       └── log.js                # 日志工具
-│   ├── renderer/                     # 渲染进程 HTML 页面
-│   │   ├── index.html                # 主窗口（配置面板 + 操作区）
-│   │   ├── dialog.html               # AI 分析对话框（含 OCR 工具栏、导出、模板）
-│   │   ├── editor.html               # 截图编辑器（Canvas 画板）
-│   │   └── gallery.html              # 历史图库浏览器
-│   ├── preloader/                    # Electron preload 脚本
-│   │   ├── preload.js                # 主窗口 IPC 桥接
-│   │   └── preloadEditor.js          # 编辑器窗口 IPC 桥接
-│   └── static/                       # 前端静态资源
-│       ├── css/                      # 样式表
-│       ├── js/                       # 渲染进程脚本与工具模块
-│       ├── icons/                    # 应用图标（PNG/ICO/ICNS）
-│       └── fonts/                    # 字体资源
+│   │       ├── aiClient.js           # 读取 4 项配置并调用 Responses API
+│   │       └── captureScreen.js      # 主屏幕截图
+│   └── static/icons/                 # 应用图标
+├── .env.example
 ├── package.json
 ├── pnpm-lock.yaml
-├── CONTRIBUTING.md
-├── LICENSE                           # MIT License
 └── README.md
 ```
 
-## 技术栈
+## 打包
 
-| 技术 | 用途 |
-|------|------|
-| Electron (v41) | 桌面应用框架 |
-| electron-screenshots | 截图组件 |
-| Tesseract.js (v5) | 前端离线 OCR 文字识别 |
-| IndexedDB | 本地历史记录持久化存储 |
-| Canvas API | 图片编辑、合成、拼接 |
-| OpenAI Compatible API | 统一 AI 接口协议 |
-| localStorage | 用户配置持久化 |
-
-## 架构概览
-
-应用采用经典的 Electron 多窗口架构：
-
-```
-┌─────────────┐     ┌─────────────┐     ┌──────────────┐
-│  主窗口       │ ──> │  编辑器窗口    │ ──> │  AI 对话窗口   │
-│  (index)     │     │  (editor)    │     │  (dialog)     │
-│  配置/操作    │     │  标注/裁剪     │     │  AI/OCR/导出   │
-└─────────────┘     └─────────────┘     └──────────────┘
-       │                                         │
-       └──────────────────┐  ┌──────────────────┘
-                          ▼  ▼
-                   ┌──────────────┐
-                   │  图库窗口      │
-                   │  (gallery)    │
-                   │  历史/搜索/标签 │
-                   └──────────────┘
+```powershell
+pnpm build
 ```
 
-**截图流程：** 主窗口触发截图 → electron-screenshots 捕获区域 → 编辑器窗口可选编辑 → AI 对话窗口进行智能分析 → 关闭时自动保存至图库
+截图会保存到 `src/img/`，该目录默认被 git 忽略。
 
-## 安全提示
-
-- API Key 存储在本地 localStorage 中，不会上传到任何服务器
-- 请勿将含有 API Key 的配置分享给他人
-- 推荐使用具有权限限制的 API Key
-- OCR 识别完全在本地执行，图片数据不会外传
-
-## 许可证
-
-本项目采用 [MIT](LICENSE) 许可证。
-
-## 贡献
-
-欢迎贡献！请参阅 `CONTRIBUTING.md`，Fork 仓库 -> 新分支 -> 提交 PR。

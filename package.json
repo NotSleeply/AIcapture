@@ -1,11 +1,13 @@
 {
-  "name": "capture",
+  "name": "aicapture",
   "version": "1.0.0",
+  "description": "Headless Electron screenshot-to-AI runner",
   "packageManager": "pnpm@10.13.1",
   "main": "./src/main/index.js",
   "scripts": {
-    "dev": "electron .",
-    "start": "nodemon --exec electron .",
+    "capture": "node scripts/run-electron.js .",
+    "dev": "node scripts/run-electron.js .",
+    "start": "node scripts/run-electron.js .",
     "build": "electron-builder"
   },
   "build": {
@@ -29,27 +31,13 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "",
-  "overrides": {
-    "@xmldom/xmldom": "^0.8.13"
-  },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "core-js",
-      "electron",
-      "electron-winstaller",
-      "tesseract.js"
+      "electron"
     ]
   },
   "devDependencies": {
     "electron": "^41.3.0",
-    "electron-builder": "^26.8.1",
-    "nodemon": "^3.1.11"
-  },
-  "dependencies": {
-    "electron-screenshots": "^0.6.1",
-    "fe-logs": "^1.0.13",
-    "ip-address": "^10.2.0",
-    "tesseract.js": "^7.0.0"
+    "electron-builder": "^26.8.1"
   }
 }
