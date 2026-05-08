@@ -1,6 +1,6 @@
 {
   "name": "aicapture",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Electron screenshot-to-AI analysis toolkit",
   "keywords": [
     "electron",
