@@ -29,13 +29,17 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "overrides": {
+    "@xmldom/xmldom": "^0.8.13"
+  },
   "devDependencies": {
-    "electron": "^41.1.1",
+    "electron": "^41.3.0",
     "electron-builder": "^26.8.1"
   },
   "dependencies": {
     "electron-screenshots": "^0.6.1",
     "fe-logs": "^1.0.13",
+    "ip-address": "^10.2.0",
     "tesseract.js": "^7.0.0"
   }
 }
