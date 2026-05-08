@@ -1,8 +1,12 @@
 # AIcapture
 
-[English](README.md) | 简体中文
+[![GitHub stars](https://img.shields.io/github/stars/NotSleeply/AIcapture)](https://github.com/NotSleeply/AIcapture)
+[![License](https://img.shields.io/github/license/NotSleeply/AIcapture)](../LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)](https://github.com/NotSleeply/AIcapture)
 
-AIcapture 是一个截图AI分析npm包。
+[English](../README.md) | 简体中文
+
+AIcapture 是一个截图 AI 分析 npm 包。
 
 ## 安装
 
@@ -79,3 +83,7 @@ AI_PROMPT=请分析这张屏幕截图的主要内容，指出关键界面、文�
 
 - 默认输出目录：当前工作目录下的 `aicapture/`
 - 通过 `client.captureAndAnalyze({ imgDir })` 自定义
+
+## 贡献
+
+欢迎提交 Issue / PR。详细流程请查看 [docs/CONTRIBUTING.md](./CONTRIBUTING.md)。

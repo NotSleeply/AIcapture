@@ -1,5 +1,9 @@
 # AIcapture
 
+[![GitHub stars](https://img.shields.io/github/stars/NotSleeply/AIcapture)](https://github.com/NotSleeply/AIcapture)
+[![License](https://img.shields.io/github/license/NotSleeply/AIcapture)](./LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)](https://github.com/NotSleeply/AIcapture)
+
 English | [简体中文](./docs/README.zh.md)
 
 AIcapture is an npm package for screenshot AI analysis.
@@ -79,3 +83,7 @@ If `createClient()` is called without `credentials` or `config`, values are read
 
 - Default output directory: `aicapture/` in the current working directory
 - Override with `client.captureAndAnalyze({ imgDir })`
+
+## Contributing
+
+Issues and pull requests are welcome. See [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md).
