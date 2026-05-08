@@ -5,9 +5,9 @@
   "packageManager": "pnpm@10.13.1",
   "main": "./src/main/index.js",
   "scripts": {
-    "capture": "node scripts/run-electron.js .",
-    "dev": "node scripts/run-electron.js .",
-    "start": "node scripts/run-electron.js .",
+    "capture": "electron .",
+    "dev": "electron .",
+    "start": "electron .",
     "build": "electron-builder"
   },
   "build": {

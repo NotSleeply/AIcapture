@@ -1,11 +1,11 @@
 # AIcapture
 
-AIcapture 是一个无 GUI 的 Electron 截图分析工具。每次运行都会自动截取主屏幕，将截图发送到火山引擎方舟 Responses API，并把分析结果打印到终端。
+AIcapture 是一个轻量的 Electron 截图分析工具。每次运行都会弹出一次性透明框选层，用户拖拽选择截图范围后，工具将选区截图发送到火山引擎方舟 Responses API，并把分析结果打印到终端。
 
 ## 功能
 
-- 启动即截图，无窗口、无托盘、无交互流程
-- 自动保存本次截图到 `src/img/`
+- 无主窗口、无托盘、无设置页，仅保留一次性截图选区覆盖层
+- 拖拽选择截图范围，并自动保存本次选区截图到 `src/img/`
 - 使用火山引擎方舟 `/responses` 协议发送图片和提示词
 - 只需要 4 个配置项：`ai_base_url`、`ai_api_key`、`ai_model`、`AI_PROMPT`
 
@@ -57,14 +57,12 @@ pnpm capture
 
 ```text
 AIcapture/
-├── scripts/
-│   └── run-electron.js               # 清理 Electron Node 模式后启动应用
 ├── src/
 │   ├── main/
-│   │   ├── index.js                  # 截图 -> AI -> 输出 -> 退出
+│   │   ├── index.js                  # 框选截图 -> AI -> 输出 -> 退出
 │   │   └── tools/
 │   │       ├── aiClient.js           # 读取 4 项配置并调用 Responses API
-│   │       └── captureScreen.js      # 主屏幕截图
+│   │       └── captureScreen.js      # 临时覆盖层选区与截图裁剪
 │   └── static/icons/                 # 应用图标
 ├── .env.example
 ├── package.json
@@ -79,4 +77,3 @@ pnpm build
 ```
 
 截图会保存到 `src/img/`，该目录默认被 git 忽略。
-

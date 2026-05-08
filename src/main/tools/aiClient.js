@@ -1,9 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-const DEFAULT_IMAGE_PROMPT =
-  "请分析这张屏幕截图的主要内容，指出关键界面、文本、问题或下一步建议。回答要清晰、具体，优先说明对用户最有帮助的信息。";
-
 const MAX_OUTPUT_TOKENS = 4096;
 
 function loadDotEnv(cwd = process.cwd()) {
@@ -51,7 +48,7 @@ function loadAIConfig() {
     baseUrl: readRequiredEnv("ai_base_url").replace(/\/+$/, ""),
     apiKey: readRequiredEnv("ai_api_key"),
     model: readRequiredEnv("ai_model"),
-    prompt: process.env.AI_PROMPT || DEFAULT_IMAGE_PROMPT,
+    prompt: readRequiredEnv("AI_PROMPT"),
   };
 }
 
@@ -81,7 +78,7 @@ function extractResponsesText(data) {
   return "";
 }
 
-async function analyzeImage({ base64Image, mimeType, prompt, config }) {
+async function analyzeImage({ base64Image, mimeType, config }) {
   const imageUri = `data:${mimeType};base64,${base64Image}`;
   const response = await fetch(`${config.baseUrl}/responses`, {
     method: "POST",
@@ -96,7 +93,7 @@ async function analyzeImage({ base64Image, mimeType, prompt, config }) {
           role: "user",
           content: [
             { type: "input_image", image_url: imageUri },
-            { type: "input_text", text: prompt },
+            { type: "input_text", text: config.prompt },
           ],
         },
       ],
@@ -111,7 +108,9 @@ async function analyzeImage({ base64Image, mimeType, prompt, config }) {
       errorData.message ||
       response.statusText ||
       "未知错误";
-    throw new Error(`AI Responses API 请求失败 (${response.status}): ${message}`);
+    throw new Error(
+      `AI Responses API 请求失败 (${response.status}): ${message}`,
+    );
   }
 
   const data = await response.json();
@@ -124,8 +123,6 @@ async function analyzeImage({ base64Image, mimeType, prompt, config }) {
 }
 
 module.exports = {
-  DEFAULT_IMAGE_PROMPT,
   analyzeImage,
   loadAIConfig,
 };
-
