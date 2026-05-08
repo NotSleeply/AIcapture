@@ -1,20 +1,24 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types:
+      - completed
 
 permissions:
   contents: write
 
 jobs:
   publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
       - name: Setup pnpm
@@ -28,6 +32,11 @@ jobs:
           node-version: 18
           registry-url: https://registry.npmjs.org/
           cache: pnpm
+
+      - name: Ensure pnpm store dir
+        run: |
+          store=$(pnpm store path)
+          mkdir -p "$store"
 
       - name: Detect version change
         id: version
