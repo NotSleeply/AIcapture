@@ -1,22 +1,46 @@
-const fs = require("fs");
-const path = require("path");
-const {
+import fs from "node:fs";
+import path from "node:path";
+import {
   BrowserWindow,
   desktopCapturer,
   ipcMain,
   nativeImage,
   screen,
-} = require("electron");
+} from "electron";
 
-function sleep(ms) {
+export type CaptureOptions = {
+  imgDir: string;
+  delayMs?: number;
+  jpegQuality?: number;
+};
+
+export type CaptureResult = {
+  imagePath: string;
+  base64: string;
+  mimeType: "image/jpeg";
+  width: number;
+  height: number;
+};
+
+type SelectionRegion = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function ensureDir(dirPath) {
+function ensureDir(dirPath: string): void {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function findPrimaryScreenSource(sources, primaryDisplay) {
+function findPrimaryScreenSource(
+  sources: Electron.DesktopCapturerSource[],
+  primaryDisplay: Electron.Display,
+): Electron.DesktopCapturerSource {
   const displayId = String(primaryDisplay.id);
 
   return (
@@ -27,11 +51,11 @@ function findPrimaryScreenSource(sources, primaryDisplay) {
   );
 }
 
-function clamp(value, min, max) {
+function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function buildSelectorHtml(channel) {
+function buildSelectorHtml(channel: string): string {
   return `<!doctype html>
 <html>
 <head>
@@ -149,7 +173,7 @@ function buildSelectorHtml(channel) {
 </html>`;
 }
 
-function selectRegion(display) {
+function selectRegion(display: Electron.Display): Promise<SelectionRegion> {
   const channel = `capture-region-${Date.now()}-${Math.random()}`;
   const { bounds } = display;
 
@@ -177,11 +201,11 @@ function selectRegion(display) {
       },
     });
 
-    function cleanup() {
+    function cleanup(): void {
       ipcMain.removeListener(channel, handleSelection);
     }
 
-    function finish(error, region) {
+    function finish(error: Error | null, region?: SelectionRegion): void {
       if (finished) return;
       finished = true;
       cleanup();
@@ -194,10 +218,13 @@ function selectRegion(display) {
         reject(error);
         return;
       }
-      resolve(region);
+      resolve(region as SelectionRegion);
     }
 
-    function handleSelection(_event, payload) {
+    function handleSelection(
+      _event: Electron.IpcMainEvent,
+      payload: { cancelled?: boolean; region?: SelectionRegion },
+    ): void {
       if (payload?.cancelled) {
         finish(new Error("已取消截图选择"));
         return;
@@ -227,7 +254,9 @@ function selectRegion(display) {
   });
 }
 
-async function captureDisplay(display) {
+async function captureDisplay(
+  display: Electron.Display,
+): Promise<Electron.NativeImage> {
   const { bounds } = display;
   const scaleFactor = display.scaleFactor || 1;
   const thumbnailSize = {
@@ -248,7 +277,9 @@ async function captureDisplay(display) {
   return nativeImage.createFromBuffer(source.thumbnail.toPNG());
 }
 
-async function captureSelectedRegion(options = {}) {
+export async function captureSelectedRegion(
+  options: CaptureOptions,
+): Promise<CaptureResult> {
   const { imgDir, delayMs = 150, jpegQuality = 92 } = options;
 
   if (!imgDir) {
@@ -303,7 +334,3 @@ async function captureSelectedRegion(options = {}) {
     height: croppedImage.getSize().height,
   };
 }
-
-module.exports = {
-  captureSelectedRegion,
-};

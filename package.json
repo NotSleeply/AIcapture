@@ -1,14 +1,29 @@
 {
   "name": "aicapture",
   "version": "1.0.0",
-  "description": "Headless Electron screenshot-to-AI runner",
+  "description": "Electron screenshot-to-AI analysis toolkit",
   "packageManager": "pnpm@10.13.1",
-  "main": "./src/main/index.js",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "capture": "electron .",
-    "dev": "electron .",
-    "start": "electron .",
-    "build": "electron-builder"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "package:app": "electron-builder"
   },
   "build": {
     "appId": "com.atguigu.video",
@@ -31,13 +46,23 @@
   },
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron"
     ]
   },
+  "peerDependencies": {
+    "electron": ">=28"
+  },
   "devDependencies": {
+    "@types/node": "^24.0.0",
     "electron": "^41.3.0",
-    "electron-builder": "^26.8.1"
+    "electron-builder": "^26.8.1",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.3"
   }
 }

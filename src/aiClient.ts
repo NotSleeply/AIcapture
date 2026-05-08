@@ -1,9 +1,16 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
 const MAX_OUTPUT_TOKENS = 4096;
 
-function loadDotEnv(cwd = process.cwd()) {
+export type AIConfig = {
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+  prompt: string;
+};
+
+function loadDotEnv(cwd: string = process.cwd()): void {
   const envPath = path.join(cwd, ".env");
   if (!fs.existsSync(envPath)) {
     return;
@@ -32,7 +39,7 @@ function loadDotEnv(cwd = process.cwd()) {
   }
 }
 
-function readRequiredEnv(name) {
+function readRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(`缺少 ${name}。请在环境变量或 .env 文件中配置`);
@@ -41,7 +48,7 @@ function readRequiredEnv(name) {
   return value;
 }
 
-function loadAIConfig() {
+export function loadAIConfig(): AIConfig {
   loadDotEnv();
 
   return {
@@ -52,20 +59,25 @@ function loadAIConfig() {
   };
 }
 
-function extractResponsesText(data) {
-  if (typeof data.output_text === "string" && data.output_text) {
-    return data.output_text;
+function extractResponsesText(data: unknown): string {
+  const record = data as {
+    output_text?: unknown;
+    output?: unknown;
+  };
+
+  if (typeof record.output_text === "string" && record.output_text) {
+    return record.output_text;
   }
 
-  if (Array.isArray(data.output)) {
-    const textParts = [];
-    for (const outputItem of data.output) {
-      const content = outputItem.content;
+  if (Array.isArray(record.output)) {
+    const textParts: string[] = [];
+    for (const outputItem of record.output) {
+      const content = (outputItem as { content?: unknown }).content;
       if (!Array.isArray(content)) continue;
 
       for (const contentItem of content) {
-        if (typeof contentItem.text === "string") {
-          textParts.push(contentItem.text);
+        if (typeof (contentItem as { text?: unknown }).text === "string") {
+          textParts.push((contentItem as { text: string }).text);
         }
       }
     }
@@ -78,7 +90,17 @@ function extractResponsesText(data) {
   return "";
 }
 
-async function analyzeImage({ base64Image, mimeType, config }) {
+export type AnalyzeImageInput = {
+  base64Image: string;
+  mimeType: string;
+  config: AIConfig;
+};
+
+export async function analyzeImage({
+  base64Image,
+  mimeType,
+  config,
+}: AnalyzeImageInput): Promise<string> {
   const imageUri = `data:${mimeType};base64,${base64Image}`;
   const response = await fetch(`${config.baseUrl}/responses`, {
     method: "POST",
@@ -102,7 +124,10 @@ async function analyzeImage({ base64Image, mimeType, config }) {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = (await response.json().catch(() => ({}))) as {
+      error?: { message?: string };
+      message?: string;
+    };
     const message =
       errorData.error?.message ||
       errorData.message ||
@@ -113,7 +138,7 @@ async function analyzeImage({ base64Image, mimeType, config }) {
     );
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as unknown;
   const content = extractResponsesText(data);
   if (!content) {
     throw new Error("AI Responses API 返回格式异常：未找到输出文本");
@@ -121,8 +146,3 @@ async function analyzeImage({ base64Image, mimeType, config }) {
 
   return content;
 }
-
-module.exports = {
-  analyzeImage,
-  loadAIConfig,
-};

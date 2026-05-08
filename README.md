@@ -1,13 +1,36 @@
 # AIcapture
 
-AIcapture 是一个轻量的 Electron 截图分析工具。每次运行都会弹出一次性透明框选层，用户拖拽选择截图范围后，工具将选区截图发送到火山引擎方舟 Responses API，并把分析结果打印到终端。
+AIcapture 是一个可发布为 npm 包的 Electron 截图分析工具，提供可复用的 API：在 Electron 主进程里一行调用即可完成「截图选区 + AI 分析」。
 
 ## 功能
 
 - 无主窗口、无托盘、无设置页，仅保留一次性截图选区覆盖层
-- 拖拽选择截图范围，并自动保存本次选区截图到 `src/img/`
+- 拖拽选择截图范围，并自动保存本次选区截图到工作目录的 `aicapture/`
 - 使用火山引擎方舟 `/responses` 协议发送图片和提示词
 - 只需要 4 个配置项：`ai_base_url`、`ai_api_key`、`ai_model`、`AI_PROMPT`
+
+## 安装与使用（作为 npm 包）
+
+### 安装
+
+```bash
+npm install aicapture electron
+```
+
+### 主进程调用
+
+```ts
+import { captureAndAnalyze } from "aicapture";
+
+const { screenshot, analysis } = await captureAndAnalyze({
+ imgDir: "aicapture",
+});
+
+console.log(screenshot.imagePath);
+console.log(analysis);
+```
+
+说明：需在 Electron 主进程调用。若 `app` 尚未 ready，内部会自动等待。
 
 ## 快速开始
 
@@ -35,13 +58,12 @@ $env:ai_base_url="https://ark.cn-beijing.volces.com/api/v3"
 $env:ai_api_key="你的火山引擎方舟 API Key"
 $env:ai_model="doubao-seed-2-0-mini-260428"
 $env:AI_PROMPT="请分析这张屏幕截图的主要内容，指出关键界面、文本、问题或下一步建议。"
-pnpm capture
 ```
 
-### 运行
+### 构建
 
 ```powershell
-pnpm capture
+pnpm build
 ```
 
 ## 配置项
@@ -58,22 +80,21 @@ pnpm capture
 ```text
 AIcapture/
 ├── src/
-│   ├── main/
-│   │   ├── index.js                  # 框选截图 -> AI -> 输出 -> 退出
-│   │   └── tools/
-│   │       ├── aiClient.js           # 读取 4 项配置并调用 Responses API
-│   │       └── captureScreen.js      # 临时覆盖层选区与截图裁剪
-│   └── static/icons/                 # 应用图标
+│   ├── aiClient.ts                   # 读取 4 项配置并调用 Responses API
+│   ├── captureScreen.ts              # 临时覆盖层选区与截图裁剪
+│   └── index.ts                      # npm 包入口
+├── tsup.config.ts                    # 构建配置（ESM + CJS + types）
+├── tsconfig.json
 ├── .env.example
 ├── package.json
 ├── pnpm-lock.yaml
 └── README.md
 ```
 
-## 打包
+## 打包 Electron 安装包（可选）
 
 ```powershell
-pnpm build
+pnpm package:app
 ```
 
-截图会保存到 `src/img/`，该目录默认被 git 忽略。
+截图会保存到当前工作目录的 `aicapture/`，该目录默认被 git 忽略。
