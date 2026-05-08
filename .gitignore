@@ -100,6 +100,7 @@ $RECYCLE.BIN/
 
 # Media / large files (项目中如需保留请调整)
 src/img/
+aicapture/
 
 # 打包生成文件
 *.tgz

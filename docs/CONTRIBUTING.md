@@ -49,37 +49,18 @@ feat: 支持区域截图并保存为 PNG
 
 ## 代码风格与质量
 
-- 主进程代码位于 `src/main`，建议遵循常见的 JavaScript 风格，项目没有强制 linter 时请保持清晰易读。
-- 后端（Python）请遵循 PEP8 风格，推荐使用 black/flake8 做格式化与检查。
-- 新增功能应包含单元测试或集成测试（如适用）。
+- 源码位于 `src/`，以 TypeScript 为主，保持类型清晰、命名一致。
+- 项目暂未强制 linter，请保持简洁、可读、易维护。
+- 新增功能建议补充测试或最小可复现用例（如适用）。
 
 ## 本地开发与测试
 
-- 无 GUI Electron 任务
-
 ```powershell
 pnpm install
-pnpm capture
+pnpm build
 ```
 
-- 后端（Python）
-
-```powershell
-cd .\backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt  # 若有
-python main.py
-```
-
-- 运行测试（若项目包含测试）：
-
-```powershell
-# Python
-pytest
-# Node（若有）
-pnpm test
-```
+如需本地验证，请在 Electron 主进程里调用 `captureAndAnalyze`。
 
 ## 提交 PR 要求
 
@@ -114,11 +95,11 @@ PR 描述模板示例：
 ## 报告问题与安全
 
 - 普通 Bug 与功能请求请通过 GitHub Issues 提交。
-- 若发现安全漏洞，请不要在 Issue 公共页面公开， 请通过邮件联系仓库管理员：<your-email@example.com>（请替换为实际邮箱）。
+- 若发现安全漏洞，请不要在 Issue 公共页面公开。优先使用 GitHub Security Advisories 或联系维护者。
 
 ## 许可证与版权
 
-提交的贡献将按照本仓库的 LICENSE（当前为 MIT）进行许可。提交代码即表示你同意将贡献以该许可证条款授权给本项目。
+提交的贡献将按照本仓库的 LICENSE（ISC）进行许可。提交代码即表示你同意将贡献以该许可证条款授权给本项目。
 
 ---
 如果你希望我为仓库创建 PR 模板、Issue 模板或自动化配置（CI、代码格式化工具）我可以继续为你添加。

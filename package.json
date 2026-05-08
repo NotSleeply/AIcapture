@@ -2,6 +2,12 @@
   "name": "aicapture",
   "version": "1.0.0",
   "description": "Electron screenshot-to-AI analysis toolkit",
+  "keywords": [
+    "electron",
+    "screenshot",
+    "capture",
+    "ai"
+  ],
   "packageManager": "pnpm@10.13.1",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -46,6 +52,14 @@
   },
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NotSleeply/AIcapture.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NotSleeply/AIcapture/issues"
+  },
+  "homepage": "https://github.com/NotSleeply/AIcapture#readme",
   "engines": {
     "node": ">=18"
   },
