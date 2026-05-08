@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+          cache: pnpm
+
+      - name: Detect version change
+        id: version
+        run: |
+          $current = node -p "require('./package.json').version"
+          $previous = ""
+          try {
+            $previous = node -e "const fs=require('fs');const pkg=JSON.parse(require('child_process').execSync('git show HEAD^:package.json').toString());process.stdout.write(pkg.version);"
+          } catch {
+            $previous = ""
+          }
+          "current=$current" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "previous=$previous" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          if ($current -and $current -ne $previous) {
+            "changed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            "changed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Install
+        if: steps.version.outputs.changed == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        if: steps.version.outputs.changed == 'true'
+        run: pnpm build
+
+      - name: Publish to npm
+        if: steps.version.outputs.changed == 'true'
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub release
+        if: steps.version.outputs.changed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.current }}
+          name: v${{ steps.version.outputs.current }}
+          generate_release_notes: true
