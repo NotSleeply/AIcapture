@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-AIcapture 是一个 Electron 截图分析工具，适用于主进程调用。它强制实例化使用：先创建客户端实例，再调用实例方法。
+AIcapture 是一个截图AI分析npm包。
 
 ## 安装
 

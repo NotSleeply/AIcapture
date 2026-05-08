@@ -1,8 +1,8 @@
 # AIcapture
 
-English | [简体中文](README.zh.md)
+English | [简体中文](./docs/README.zh.md)
 
-AIcapture is an Electron screenshot-to-AI analysis toolkit for main-process usage. It enforces instance-based calls: create a client once, then call its methods.
+AIcapture is an npm package for screenshot AI analysis.
 
 ## Install
 
