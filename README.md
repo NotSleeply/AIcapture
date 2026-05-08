@@ -47,7 +47,7 @@ AIcapture 是一款基于 **Electron** 的智能桌面截图工具，集成 AI �
 ### 环境要求
 
 - Node.js >= 18
-- npm 或 cnpm
+- pnpm >= 10
 - 一个 AI 服务商的 API Key（DeepSeek / OpenAI / 豆包 任选其一）
 
 ### 安装与运行
@@ -58,14 +58,13 @@ git clone https://github.com/<your-username>/AIcapture.git
 cd AIcapture
 
 # 安装依赖
-cd Capture
-npm install
+pnpm install
 
 # 启动开发模式
-npm run dev
+pnpm dev
 
 # 打包为安装包
-npm run build
+pnpm build
 ```
 
 ## 使用说明
@@ -113,7 +112,7 @@ npm run build
 
 ```
 AIcapture/
-├── Capture/                          # Electron 主程序
+├── src/                              # Electron 应用源码与静态资源
 │   ├── main/                         # 主进程代码
 │   │   ├── index.js                  # 应用入口与窗口管理
 │   │   ├── capture.js                # 截图逻辑、IPC 处理、窗口协调
@@ -133,26 +132,11 @@ AIcapture/
 │   │   └── preloadEditor.js          # 编辑器窗口 IPC 桥接
 │   └── static/                       # 前端静态资源
 │       ├── css/                      # 样式表
-│       │   ├── index.css             # 主窗口样式
-│       │   ├── dialog.css            # AI 对话框样式
-│       │   ├── editor.css            # 编辑器样式
-│       │   └── gallery.css           # 图库样式
-│       ├── js/
-│       │   ├── index.js              # 主窗口交互逻辑
-│       │   ├── dialog.js             # AI 分析对话框逻辑
-│       │   ├── editor.js             # 编辑器画板逻辑
-│       │   ├── gallery.js            # 图库浏览器逻辑
-│       │   └── tools/                # 前端工具模块
-│       │       ├── aiClient.js       # AI 客户端（多提供商）
-│       │       ├── ocrEngine.js      # Tesseract.js OCR 引擎
-│       │       ├── exportUtils.js    # 导出工具（MD/TXT/图片）
-│       │       ├── promptTemplates.js # 提示词模板管理
-│       │       ├── historyDB.js      # IndexedDB 历史记录存储
-│       │       ├── editorUtils.js    # 编辑器辅助工具
-│       │       ├── formatAIMessage.js # AI 消息渲染
-│       │       └── ...               # 其他工具模块
+│       ├── js/                       # 渲染进程脚本与工具模块
 │       ├── icons/                    # 应用图标（PNG/ICO/ICNS）
 │       └── fonts/                    # 字体资源
+├── package.json
+├── pnpm-lock.yaml
 ├── CONTRIBUTING.md
 ├── LICENSE                           # MIT License
 └── README.md
@@ -162,7 +146,7 @@ AIcapture/
 
 | 技术 | 用途 |
 |------|------|
-| Electron (v39) | 桌面应用框架 |
+| Electron (v41) | 桌面应用框架 |
 | electron-screenshots | 截图组件 |
 | Tesseract.js (v5) | 前端离线 OCR 文字识别 |
 | IndexedDB | 本地历史记录持久化存储 |

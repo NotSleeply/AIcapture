@@ -49,18 +49,17 @@ feat: 支持区域截图并保存为 PNG
 
 ## 代码风格与质量
 
-- 前端（Capture）建议遵循常见的 JavaScript/TypeScript 风格，项目没有强制 linter 时请保持清晰易读。
+- 前端（src）建议遵循常见的 JavaScript/TypeScript 风格，项目没有强制 linter 时请保持清晰易读。
 - 后端（Python）请遵循 PEP8 风格，推荐使用 black/flake8 做格式化与检查。
 - 新增功能应包含单元测试或集成测试（如适用）。
 
 ## 本地开发与测试
 
-- 前端（Capture）
+- 前端（Electron）
 
 ```powershell
-cd .\Capture
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 - 后端（Python）
@@ -79,7 +78,7 @@ python main.py
 # Python
 pytest
 # Node（若有）
-npm test
+pnpm test
 ```
 
 ## 提交 PR 要求

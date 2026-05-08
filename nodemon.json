@@ -4,6 +4,6 @@
         "dist"
     ],
     "ext": "js,json,ts,html,css,vue,scss,less",
-    "watch":["*.*"],
+    "watch":["src", "package.json"],
     "restartable": "reboot"
 }
