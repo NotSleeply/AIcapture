@@ -68,7 +68,10 @@
     "pnpm": {
         "onlyBuiltDependencies": [
             "electron"
-        ]
+        ],
+        "overrides": {
+            "esbuild": ">=0.28.1"
+        }
     },
     "peerDependencies": {
         "electron": ">=28"
