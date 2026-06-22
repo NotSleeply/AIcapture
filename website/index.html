@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIcapture — Screenshot to AI insight</title>
+  <meta name="description" content="Electron + Vision AI. Capture a screen region, get an analysis — in one call." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090d;
+      --bg-soft: #0d1117;
+      --surface: #11161f;
+      --border: #1f2733;
+      --text: #e6edf3;
+      --text-dim: #8b97a7;
+      --text-mute: #5c6878;
+      --accent: #31d0ff;
+      --accent-soft: rgba(49, 208, 255, 0.12);
+      --accent-glow: rgba(49, 208, 255, 0.35);
+      --code-bg: #0a0e14;
+      --maxw: 1120px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* Ambient background glow */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(49, 208, 255, 0.12), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(49, 208, 255, 0.05), transparent 60%);
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(49, 208, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(49, 208, 255, 0.04) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, #000 30%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, #000 30%, transparent 80%);
+    }
+
+    .wrap {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Nav */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(7, 9, 13, 0.7);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    nav.scrolled { border-bottom-color: var(--border); }
+
+    .nav-inner {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: -0.01em;
+    }
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--accent), #1aa8d6);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+    .brand-mark svg { width: 14px; height: 14px; }
+
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a {
+      color: var(--text-dim);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+    .nav-cta:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+    /* Hero */
+    .hero {
+      padding: 120px 0 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-dim);
+      background: var(--bg-soft);
+      margin-bottom: 32px;
+    }
+    .badge .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      margin-bottom: 24px;
+      background: linear-gradient(180deg, #fff 0%, #a8b8c8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .tagline {
+      font-size: clamp(18px, 2.2vw, 22px);
+      color: var(--text-dim);
+      max-width: 580px;
+      margin: 0 auto 40px;
+      line-height: 1.5;
+    }
+    .tagline strong { color: var(--accent); font-weight: 500; }
+
+    .install {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 32px;
+      position: relative;
+      transition: border-color 0.2s ease;
+    }
+    .install:hover { border-color: var(--accent); }
+    .install .prompt { color: var(--accent); user-select: none; }
+    .install .cmd { color: var(--text); }
+    .install button {
+      background: transparent;
+      border: none;
+      color: var(--text-mute);
+      cursor: pointer;
+      padding: 4px;
+      display: grid;
+      place-items: center;
+      border-radius: 4px;
+      transition: color 0.2s ease;
+    }
+    .install button:hover { color: var(--accent); }
+    .install button.copied { color: var(--accent); }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #00131a;
+      box-shadow: 0 0 0 0 var(--accent-glow);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 32px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      border-color: var(--border);
+      color: var(--text);
+      background: var(--bg-soft);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Section base */
+    section.block {
+      padding: 96px 0;
+      position: relative;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(32px, 4vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      max-width: 640px;
+    }
+
+    .section-sub {
+      font-size: 17px;
+      color: var(--text-dim);
+      max-width: 560px;
+      margin-bottom: 56px;
+    }
+
+    /* How it works */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+
+    .step {
+      position: relative;
+      padding: 32px 28px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    .step::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .step:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .step:hover::before { opacity: 1; }
+
+    .step-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: block;
+    }
+    .step-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      display: grid;
+      place-items: center;
+      margin-bottom: 20px;
+    }
+    .step-icon svg { width: 20px; height: 20px; stroke: var(--accent); }
+    .step h3 {
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .step p {
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Code block */
+    .code-section {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 56px;
+      align-items: start;
+    }
+    @media (max-width: 920px) { .code-section { grid-template-columns: 1fr; gap: 32px; } }
+
+    .code-card {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+    }
+    .code-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .code-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .code-dot.r { background: #ff5f57; }
+    .code-dot.y { background: #febc2e; }
+    .code-dot.g { background: #28c840; }
+    .code-file {
+      margin-left: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: var(--text-mute);
+    }
+    pre {
+      padding: 22px 24px;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .tk-kw { color: #ff7b72; }
+    .tk-fn { color: #d2a8ff; }
+    .tk-str { color: #a5d6ff; }
+    .tk-com { color: #6e7681; font-style: italic; }
+    .tk-var { color: #79c0ff; }
+    .tk-num { color: #79c0ff; }
+    .tk-pun { color: #c9d1d9; }
+
+    /* API list */
+    .api-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .api-row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      padding: 22px 28px;
+      background: var(--bg-soft);
+      align-items: baseline;
+    }
+    @media (max-width: 720px) {
+      .api-row { grid-template-columns: 1fr; gap: 6px; }
+    }
+    .api-sig {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 13.5px;
+      color: var(--accent);
+    }
+    .api-desc { color: var(--text-dim); font-size: 14px; }
+
+    /* Config table */
+    .cfg-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .cfg-table th, .cfg-table td {
+      text-align: left;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .cfg-table tr:last-child td { border-bottom: none; }
+    .cfg-table th {
+      background: var(--bg-soft);
+      font-weight: 600;
+      color: var(--text-dim);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .cfg-table td code {
+      font-family: "JetBrains Mono", monospace;
+      color: var(--accent);
+      font-size: 13px;
+    }
+    .cfg-table tr:hover td { background: rgba(49, 208, 255, 0.03); }
+
+    /* Final CTA */
+    .final {
+      text-align: center;
+      padding: 120px 0 80px;
+    }
+    .final h2 {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      background: linear-gradient(180deg, #fff, #a8b8c8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .final p {
+      color: var(--text-dim);
+      font-size: 18px;
+      margin-bottom: 36px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      margin-top: 40px;
+    }
+    .foot-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .foot-inner small { color: var(--text-mute); font-size: 13px; }
+    .foot-links { display: flex; gap: 24px; }
+    .foot-links a { color: var(--text-dim); font-size: 13px; transition: color 0.2s; }
+    .foot-links a:hover { color: var(--accent); }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    .hero .reveal { transition-delay: var(--d, 0ms); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="grid-bg"></div>
+
+  <nav id="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00131a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7h3l2-2h8l2 2h3v12H3z"/><circle cx="12" cy="13" r="4"/>
+          </svg>
+        </span>
+        AIcapture
+      </a>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#usage">Usage</a>
+        <a href="#api">API</a>
+        <a href="#config">Config</a>
+        <a class="nav-cta" href="https://github.com/NotSleeply/AIcapture" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="wrap">
+        <span class="badge reveal" style="--d:0ms"><span class="dot"></span> v1.0.2 · Electron ≥ 28 · Node ≥ 18</span>
+        <h1 class="reveal" style="--d:80ms">AIcapture</h1>
+        <p class="tagline reveal" style="--d:160ms">
+          Screenshot to AI insight, in one call. <strong>Capture a region</strong>, send it to a vision model, get back structured analysis.
+        </p>
+        <div class="install reveal" style="--d:240ms" id="installCmd">
+          <span class="prompt">$</span>
+          <span class="cmd">npm install aicapture electron</span>
+          <button id="copyBtn" aria-label="Copy install command">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+        <div class="cta-row reveal" style="--d:320ms">
+          <a class="btn btn-primary" href="#usage">
+            Get started
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/NotSleeply/AIcapture" target="_blank" rel="noopener">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="block" id="how">
+      <div class="wrap">
+        <span class="section-label reveal">How it works</span>
+        <h2 class="section-title reveal">Three steps, one promise.</h2>
+        <p class="section-sub reveal">From raw pixels to natural-language insight — no glue code required.</p>
+        <div class="steps">
+          <div class="step reveal">
+            <span class="step-num">01 / Select</span>
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7 18 2-7 7-2z"/></svg>
+            </div>
+            <h3>Pick a region</h3>
+            <p>A native transparent overlay lets you drag-select any area of the screen. Esc to cancel, right-click to abort.</p>
+          </div>
+          <div class="step reveal">
+            <span class="step-num">02 / Analyze</span>
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+            </div>
+            <h3>Send to vision AI</h3>
+            <p>The cropped JPEG is base64-encoded and posted to the Responses API with your prompt. Any compatible vision model works.</p>
+          </div>
+          <div class="step reveal">
+            <span class="step-num">03 / Result</span>
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            </div>
+            <h3>Get the analysis</h3>
+            <p>Receive the model's text response alongside the saved screenshot path, dimensions, and base64 payload.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Usage -->
+    <section class="block" id="usage">
+      <div class="wrap">
+        <div class="code-section">
+          <div>
+            <span class="section-label reveal">Usage</span>
+            <h2 class="section-title reveal">One client, one call.</h2>
+            <p class="section-sub reveal">Create a client with credentials or env vars, then capture and analyze in a single await. Runs in the Electron main process.</p>
+          </div>
+          <div class="code-card reveal">
+            <div class="code-head">
+              <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+              <span class="code-file">main.ts</span>
+            </div>
+<pre><code><span class="tk-com">// Electron main process</span>
+<span class="tk-kw">import</span> { createClient } <span class="tk-kw">from</span> <span class="tk-str">"aicapture"</span>;
+
+<span class="tk-kw">const</span> <span class="tk-var">client</span> = <span class="tk-fn">createClient</span>({
+  credentials: {
+    baseUrl: <span class="tk-str">"https://ark.cn-beijing.volces.com/api/v3"</span>,
+    apiKey: <span class="tk-str">"YOUR_API_KEY"</span>,
+    model: <span class="tk-str">"doubao-seed-2-0-mini-260428"</span>,
+    prompt: <span class="tk-str">"Analyze this screenshot and summarize key UI and next steps."</span>,
+  },
+  imgDir: <span class="tk-str">"aicapture"</span>,
+});
+
+<span class="tk-kw">const</span> { screenshot, analysis } = <span class="tk-kw">await</span> client.<span class="tk-fn">captureAndAnalyze</span>();
+
+console.<span class="tk-fn">log</span>(screenshot.imagePath);
+console.<span class="tk-fn">log</span>(analysis);</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- API -->
+    <section class="block" id="api">
+      <div class="wrap">
+        <span class="section-label reveal">Client API</span>
+        <h2 class="section-title reveal">A small, predictable surface.</h2>
+        <p class="section-sub reveal">Four methods. Everything you need to capture, analyze, or both.</p>
+        <div class="api-grid reveal">
+          <div class="api-row">
+            <code class="api-sig">createClient(options?)</code>
+            <span class="api-desc">Create a client with credentials, a config object, or env vars.</span>
+          </div>
+          <div class="api-row">
+            <code class="api-sig">client.captureAndAnalyze(options?)</code>
+            <span class="api-desc">Select a region, capture it, and run AI analysis in one call.</span>
+          </div>
+          <div class="api-row">
+            <code class="api-sig">client.captureSelectedRegion(options?)</code>
+            <span class="api-desc">Capture a selected screen region without invoking the model.</span>
+          </div>
+          <div class="api-row">
+            <code class="api-sig">client.analyzeImage({ base64Image, mimeType })</code>
+            <span class="api-desc">Run analysis on an arbitrary base64 image you already have.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Config -->
+    <section class="block" id="config">
+      <div class="wrap">
+        <span class="section-label reveal">Configuration</span>
+        <h2 class="section-title reveal">Env vars, no boilerplate.</h2>
+        <p class="section-sub reveal">Drop a <code style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:14px">.env</code> file in your project root and call <code style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:14px">createClient()</code> with no arguments.</p>
+        <table class="cfg-table reveal">
+          <thead>
+            <tr><th>Variable</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ai_base_url</code></td><td>Base URL for the Ark Responses API</td></tr>
+            <tr><td><code>ai_api_key</code></td><td>API key for authentication</td></tr>
+            <tr><td><code>ai_model</code></td><td>Vision model ID to invoke</td></tr>
+            <tr><td><code>AI_PROMPT</code></td><td>Prompt sent alongside the image</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final">
+      <div class="wrap">
+        <h2 class="reveal">Ship the screenshot loop.</h2>
+        <p class="reveal">Install in seconds. Capture and analyze in one line.</p>
+        <div class="cta-row reveal">
+          <a class="btn btn-primary" href="https://www.npmjs.com/package/aicapture" target="_blank" rel="noopener">
+            View on npm
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/NotSleeply/AIcapture" target="_blank" rel="noopener">Read the docs</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot-inner">
+      <small>MIT-style · Built for Electron + Vision AI</small>
+      <div class="foot-links">
+        <a href="https://github.com/NotSleeply/AIcapture" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.npmjs.com/package/aicapture" target="_blank" rel="noopener">npm</a>
+        <a href="https://github.com/NotSleeply/AIcapture/issues" target="_blank" rel="noopener">Issues</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Nav scroll state
+    const nav = document.getElementById('nav');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Reveal on scroll
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      }
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // Copy install command
+    const copyBtn = document.getElementById('copyBtn');
+    const cmdText = document.querySelector('#installCmd .cmd').textContent;
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(cmdText);
+        copyBtn.classList.add('copied');
+        setTimeout(() => copyBtn.classList.remove('copied'), 1400);
+      } catch {}
+    });
+  </script>
+</body>
+</html>
