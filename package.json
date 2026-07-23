@@ -65,7 +65,6 @@
         "node": ">=18"
     },
     "sideEffects": false,
-
     "peerDependencies": {
         "electron": ">=28"
     },
