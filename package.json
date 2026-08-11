@@ -1,78 +1,79 @@
-{
-    "name": "aicapture",
-    "version": "1.0.2",
-    "description": "Electron screenshot-to-AI analysis toolkit",
-    "keywords": [
-        "electron",
-        "screenshot",
-        "capture",
-        "ai"
-    ],
-    "packageManager": "pnpm@10.13.1",
-    "type": "module",
-    "main": "./dist/index.cjs",
-    "module": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "require": "./dist/index.cjs"
-        },
-        "./package.json": "./package.json"
-    },
-    "files": [
-        "dist",
-        "README.md",
-        "./docs/README.zh.md",
-        "LICENSE"
-    ],
-    "scripts": {
-        "build": "tsup",
-        "dev": "tsup --watch",
-        "package:app": "electron-builder"
-    },
-    "build": {
-        "appId": "com.atguigu.video",
-        "win": {
-            "icon": "./src/static/icons/icon.ico",
-            "target": [
-                {
-                    "target": "nsis",
-                    "arch": [
-                        "x64"
-                    ]
-                }
-            ]
-        },
-        "nsis": {
-            "oneClick": false,
-            "perMachine": true,
-            "allowToChangeInstallationDirectory": true
-        }
-    },
-    "author": "",
-    "license": "ISC",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/NotSleeply/AIcapture.git"
-    },
-    "bugs": {
-        "url": "https://github.com/NotSleeply/AIcapture/issues"
-    },
-    "homepage": "https://github.com/NotSleeply/AIcapture#readme",
-    "engines": {
-        "node": ">=18"
-    },
-    "sideEffects": false,
-    "peerDependencies": {
-        "electron": ">=28"
-    },
-    "devDependencies": {
-        "@types/node": "^26.1.0",
-        "electron": "^43.0.0",
-        "electron-builder": "^26.15.3",
-        "tsup": "^8.5.1",
-        "typescript": "^6.0.3"
-    }
+﻿{
+    "name":  "aicapture",
+    "version":  "1.0.2",
+    "description":  "Electron screenshot-to-AI analysis toolkit",
+    "keywords":  [
+                     "electron",
+                     "screenshot",
+                     "capture",
+                     "ai"
+                 ],
+    "packageManager":  "pnpm@10.13.1",
+    "type":  "module",
+    "main":  "./dist/index.cjs",
+    "module":  "./dist/index.js",
+    "types":  "./dist/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./dist/index.d.ts",
+                              "import":  "./dist/index.js",
+                              "require":  "./dist/index.cjs"
+                          },
+                    "./package.json":  "./package.json"
+                },
+    "files":  [
+                  "dist",
+                  "README.md",
+                  "./docs/README.zh.md",
+                  "LICENSE"
+              ],
+    "scripts":  {
+                    "build":  "tsup",
+                    "dev":  "tsup --watch",
+                    "package:app":  "electron-builder"
+                },
+    "build":  {
+                  "appId":  "com.atguigu.video",
+                  "win":  {
+                              "icon":  "./src/static/icons/icon.ico",
+                              "target":  [
+                                             {
+                                                 "target":  "nsis",
+                                                 "arch":  [
+                                                              "x64"
+                                                          ]
+                                             }
+                                         ]
+                          },
+                  "nsis":  {
+                               "oneClick":  false,
+                               "perMachine":  true,
+                               "allowToChangeInstallationDirectory":  true
+                           }
+              },
+    "author":  "",
+    "license":  "ISC",
+    "repository":  {
+                       "type":  "git",
+                       "url":  "https://github.com/NotSleeply/AIcapture.git"
+                   },
+    "bugs":  {
+                 "url":  "https://github.com/NotSleeply/AIcapture/issues"
+             },
+    "homepage":  "https://github.com/NotSleeply/AIcapture#readme",
+    "engines":  {
+                    "node":  "\u003e=18"
+                },
+    "sideEffects":  false,
+    "peerDependencies":  {
+                             "electron":  "\u003e=28"
+                         },
+    "devDependencies":  {
+                            "@types/node":  "^26.1.0",
+                            "electron":  "^43.0.0",
+                            "electron-builder":  "^26.15.3",
+                            "tsup":  "^8.5.1",
+                            "typescript":  "^6.0.3"
+                        },
+    "pnpm": { "overrides": { "js-yaml": "4.3.1" } }
 }
