@@ -75,5 +75,10 @@
                             "tsup":  "^8.5.1",
                             "typescript":  "^6.0.3"
                         },
-    "pnpm": { "overrides": { "js-yaml": "4.3.1" } }
+    "pnpm":  {
+                 "overrides":  {
+                                   "esbuild":  "\u003e=0.28.1",
+                                   "js-yaml":  "4.3.1"
+                               }
+             }
 }
